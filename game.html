@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>잘먹었습니다 - 프로토타입</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #1b1b1b;
+    color: #e8e8e8;
+    font-family: 'Courier New', Consolas, monospace;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  #app {
+    width: 100%;
+    max-width: 480px;
+    background: #111;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid #333;
+    border-right: 1px solid #333;
+  }
+  #statusbar {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #222;
+    border-bottom: 1px solid #333;
+    font-size: 12px;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  #statusbar span { white-space: nowrap; }
+  .heart-full { color: #ff5c7a; }
+  .heart-empty { color: #555; }
+  #screen {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+  }
+  h1, h2, h3 { margin-top: 0; }
+  h1 { font-size: 22px; text-align: center; letter-spacing: 2px; }
+  pre.ascii {
+    text-align: center;
+    color: #9fe8a8;
+    font-size: 11px;
+    line-height: 1.2;
+    margin: 10px 0;
+    white-space: pre;
+  }
+  .card {
+    background: #1d1d1d;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  .chat-line {
+    margin: 6px 0;
+    line-height: 1.5;
+    font-size: 14px;
+    opacity: 0;
+    animation: fadeIn 0.25s forwards;
+  }
+  @keyframes fadeIn { to { opacity: 1; } }
+  .name { font-weight: bold; }
+  .name-mom { color: #ffd27a; }
+  .name-dad { color: #7ac6ff; }
+  .name-sib { color: #c29bff; }
+  .name-me { color: #9fe8a8; }
+  .name-friend { color: #ff9ab0; }
+  .typing { color: #888; font-style: italic; font-size: 13px; margin: 4px 0; }
+  .timer-wrap {
+    background: #222;
+    border-radius: 4px;
+    height: 10px;
+    margin: 10px 0;
+    overflow: hidden;
+    border: 1px solid #444;
+  }
+  .timer-bar {
+    height: 100%;
+    background: #ff5c7a;
+    transition: width 1s linear;
+  }
+  .timer-text { font-size: 12px; color: #ff9ab0; text-align: right; }
+  button.choice {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: #262626;
+    color: #e8e8e8;
+    border: 1px solid #3a3a3a;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin: 6px 0;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  button.choice:hover { background: #333; border-color: #555; }
+  button.choice .num { color: #ffd27a; margin-right: 6px; }
+  button.primary {
+    display: block;
+    width: 100%;
+    background: #3a6a4a;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 15px;
+    font-family: inherit;
+    cursor: pointer;
+    margin-top: 12px;
+  }
+  button.primary:hover { background: #4a8a5e; }
+  button.secondary {
+    display: block;
+    width: 100%;
+    background: #2a2a2a;
+    color: #ccc;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  .tag {
+    display: inline-block;
+    background: #2a3a2a;
+    color: #9fe8a8;
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-size: 12px;
+    margin: 2px;
+  }
+  .tag.off { background: #3a2a2a; color: #ff9a9a; }
+  .tag.selected { outline: 2px solid #9fe8a8; }
+  .choice-grid { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .pill {
+    background: #262626;
+    border: 1px solid #444;
+    border-radius: 16px;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .pill.selected { background: #3a6a4a; border-color: #5a9a6e; color: #fff; }
+  .small { font-size: 12px; color: #999; }
+  .menu-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .menu-table td, .menu-table th { padding: 6px 4px; border-bottom: 1px solid #333; }
+  .result-line { font-size: 14px; margin: 6px 0; line-height: 1.5; }
+  .delta-up { color: #9fe8a8; }
+  .delta-down { color: #ff9a9a; }
+  .skip-btn {
+    position: fixed;
+    bottom: 10px;
+    right: calc(50% - 230px);
+    background: #2a2a2a;
+    border: 1px solid #555;
+    color: #ccc;
+    padding: 6px 10px;
+    border-radius: 14px;
+    font-size: 11px;
+    cursor: pointer;
+    z-index: 50;
+  }
+  @media (max-width: 480px) {
+    .skip-btn { right: 10px; }
+  }
+  select, input[type=text] {
+    background: #222;
+    color: #eee;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 6px;
+    font-family: inherit;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="statusbar"></div>
+  <div id="screen"></div>
+</div>
+<button class="skip-btn" id="skipBtn" style="display:none">⏩ 빨리 보기</button>
+
+<script>
+(function(){
+"use strict";
+
+// ----------------------- 데이터 -----------------------
+
+const DAY_NAMES = ["월","화","수","목","금","토","일"];
+
+const FOOD_TAGS = ["해산물","고기","면","국물","매운 음식","담백한 음식"];
+const RESTRICT_INGS = ["굴","땅콩","유제품","날생선","버섯"];
+
+const MENUS = [
+  {name:"된장찌개와 제육볶음", tags:["고기","국물"], ings:[], special:false},
+  {name:"해물파전", tags:["해산물","담백한 음식"], ings:["굴"], special:false},
+  {name:"김치찌개", tags:["국물","매운 음식"], ings:[], special:false},
+  {name:"잡채와 전", tags:["면","담백한 음식"], ings:[], special:false},
+  {name:"회덮밥", tags:["해산물"], ings:["날생선"], special:false},
+  {name:"크림파스타", tags:["면","담백한 음식"], ings:["유제품"], special:false},
+  {name:"매운 돼지갈비찜", tags:["고기","매운 음식"], ings:[], special:false},
+  {name:"버섯전골", tags:["국물","담백한 음식"], ings:["버섯"], special:false},
+  {name:"치킨과 맥주", tags:["고기"], ings:[], special:false},
+  {name:"땅콩소스 월남쌈", tags:["면","담백한 음식"], ings:["땅콩"], special:false},
+  {name:"삼겹살 구이", tags:["고기"], ings:[], special:false},
+  {name:"순두부찌개", tags:["국물","매운 음식"], ings:[], special:false},
+  {name:"오징어볶음", tags:["해산물","매운 음식"], ings:[], special:false},
+  {name:"갈비탕", tags:["고기","국물"], ings:[], special:false},
+  {name:"온 가족 외식 - 소고기 구이", tags:["고기"], ings:[], special:true},
+  {name:"일요일 특별 잡채상", tags:["면","담백한 음식"], ings:[], special:true},
+];
+
+const CHANGE_EVENTS = [
+  {text:"재료가 떨어져서 메뉴가 바뀌었다.", type:"replace"},
+  {text:"다들 귀찮아져서 배달 음식으로 바뀌었다.", type:"delivery"},
+  {text:"아빠가 갑자기 외식을 제안했다.", type:"eatout"},
+  {text:"엄마가 네가 못 먹는 재료를 빼고 다시 준비했다.", type:"substitute"},
+  {text:"동생이 조르는 메뉴로 바뀌었다.", type:"sibling"},
+  {text:"장을 깜빡해서 메뉴가 급하게 바뀌었다.", type:"replace"},
+];
+
+const DELIVERY_MENU = {name:"치킨 배달", tags:["고기"], ings:[], special:false};
+const EATOUT_MENU = {name:"가족 외식 - 국밥집", tags:["국물","고기"], ings:[], special:false};
+
+const SCHEDULE_TYPES = [
+  {id:"friend", label:"친구와 저녁"},
+  {id:"club", label:"동아리/취미 모임"},
+  {id:"study", label:"과제/스터디"},
+  {id:"show", label:"공연/행사"},
+  {id:"rest", label:"혼자 쉬는 시간"},
+];
+
+const IMPORTANCE = {
+  light: {label:"가벼운 약속", cost:5, reward:5},
+  normal:{label:"보통 약속", cost:10, reward:10},
+  important:{label:"중요한 약속", cost:20, reward:20},
+};
+
+const NOON_EVENTS = [
+  "엄마: 오늘 장 보러 가는데 먹고 싶은 거 있어?",
+  "아빠: 오늘 좀 늦을지도.",
+  "동생: 나 오늘 저녁에 학원 있어.",
+  "친구: 오늘 약속 꼭 오는 거지?",
+  "엄마: 오늘따라 유난히 배고프다...",
+  "아빠: 오늘 회식 있을 수도 있어. 이따 알려줄게.",
+  "동생: 오늘 메뉴 뭐야? 궁금해 죽겠네.",
+  "엄마: 냉장고 청소나 할까 하는데, 오늘 간단히 먹을까?",
+  "친구: 야 오늘 시간 맞나 다시 확인해줘.",
+  "아빠: 요즘 다들 바쁘네. 다음 주엔 다 같이 먹자.",
+];
+
+// 가족 불참 대사
+const ABSENT_LINES = {
+  mom: ["엄마: 오늘 동창회가 있어서 늦을 것 같아.", "엄마: 오늘은 좀 쉬고 싶어서 요리 패스!"],
+  dad: ["아빠: 나 오늘 회식이라 늦어.", "아빠: 운동 모임 있어서 못 먹을 듯.", "아빠: 야근이다 야근..."],
+  sib: ["동생: 나 오늘 학원 끝나고 친구 만나!", "동생: 과제 때문에 늦게 올 듯.", "동생: 나 오늘 약속 있어서 패스."],
+};
+
+const TYPING_NAMES = {mom:"엄마", dad:"아빠", sib:"동생"};
+
+// ----------------------- 상태 -----------------------
+
+let state = null;
+let timerInterval = null;
+let fastMode = false;
+let typingQueueResolver = null;
+
+const STORAGE_KEY = "jalmeogeoss_save_v1";
+
+function freshState(){
+  return {
+    currentDay: 0, // 0~6 (월~일)
+    playerRole: null, // "자녀 1" | "자녀 2"
+    preferences: { likedTags: [], dislikedTag: null, restrictedIngredient: null },
+    schedules: [], // {day, type, importance, status}
+    weeklyMenus: [], // {menu, changed, changeEvent}
+    familyHeart: 5,
+    personalPoints: 50,
+    fatigue: 0,
+    mealCount: 0,
+    fullFamilyMealCount: 0,
+    choices: [],
+    eventHistory: [],
+    endingId: null,
+    phase: "title",
+    dayAbsentees: [], // computed per day
+    sundayFullMeal: false,
+  };
+}
+
+function save(){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
+}
+function loadSave(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e){ return null; }
+}
+function clearSave(){
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e){}
+}
+
+// ----------------------- 유틸 -----------------------
+
+function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+function rand(n){ return Math.floor(Math.random()*n); }
+function pick(arr){ return arr[rand(arr.length)]; }
+function shuffle(arr){
+  const a = arr.slice();
+  for (let i=a.length-1;i>0;i--){
+    const j = rand(i+1);
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function heartDisplay(h){
+  let full = Math.floor(h);
+  let half = h - full >= 0.5;
+  let out = "";
+  for (let i=0;i<5;i++){
+    if (i < full) out += "♥";
+    else if (i === full && half) out += "♡";
+    else out += "·";
+  }
+  return out;
+}
+
+// ----------------------- 렌더링 기본 -----------------------
+
+const screenEl = document.getElementById("screen");
+const statusEl = document.getElementById("statusbar");
+const skipBtn = document.getElementById("skipBtn");
+
+function renderStatus(){
+  if (!state || state.phase === "title" || state.phase === "intro") {
+    statusEl.innerHTML = "";
+    return;
+  }
+  const dayLabel = state.currentDay < 7 ? DAY_NAMES[state.currentDay] + "요일" : "정산";
+  statusEl.innerHTML = `
+    <span>📅 ${dayLabel}</span>
+    <span class="heart-full">가족 ${heartDisplay(state.familyHeart)}</span>
+    <span>🧡 개인 ${state.personalPoints}</span>
+    <span>🍚 식사 ${state.mealCount}/3</span>
+  `;
+}
+
+function clearScreen(){
+  screenEl.innerHTML = "";
+}
+
+function el(tag, cls, html){
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html !== undefined) e.innerHTML = html;
+  return e;
+}
+
+// ----------------------- 타이틀 / 인트로 -----------------------
+
+const TITLE_ART = `
+       _       _ _ _ ___  _____   ____  __  _  _
+      | |     | | | |  _ \\|  __ \\ |  _ \\|  \\/  || |
+      [♥]   [♥]   [♥]   [♥]   [♥]
+       엄 마     아 빠     자 녀
+`;
+
+function renderTitle(){
+  clearScreen();
+  const art = `
+   ┌─────────────────────────┐
+   │   (ᴗ_ᴗ)  (•‿•)  (^_^)   │
+   │   엄마    아빠   자녀    │
+   │        가족 단톡방        │
+   └─────────────────────────┘
+`;
+  const c = el("div", "card");
+  c.innerHTML = `
+    <h1>잘 먹었습니다</h1>
+    <pre class="ascii">${art}</pre>
+    <p style="text-align:center; color:#aaa; font-size:13px;">텍스트 기반 가족 단톡방 시뮬레이션 (프로토타입)</p>
+  `;
+  screenEl.appendChild(c);
+
+  const hasSave = !!loadSave();
+
+  const btn1 = el("button", "primary", "새 게임 시작");
+  btn1.onclick = () => {
+    if (hasSave){
+      if (confirm("진행 중인 게임이 있습니다. 새로 시작하면 기존 기록이 삭제됩니다. 계속할까요?")){
+        clearSave();
+        startNewGame();
+      }
+    } else {
+      startNewGame();
+    }
+  };
+  screenEl.appendChild(btn1);
+
+  if (hasSave){
+    const btn2 = el("button", "secondary", "이어서 하기");
+    btn2.onclick = () => {
+      state = loadSave();
+      fastMode = true;
+      renderStatus();
+      routePhase();
+    };
+    screenEl.appendChild(btn2);
+  }
+}
+
+function startNewGame(){
+  state = freshState();
+  state.phase = "intro";
+  renderStatus();
+  routePhase();
+}
+
+function renderIntro(){
+  clearScreen();
+  const c = el("div", "card");
+  c.innerHTML = `
+    <h2>게임 소개</h2>
+    <p class="result-line">4인 가족의 자녀가 되어 일주일 동안 가족 저녁 식사와 개인 일정을 조율합니다.</p>
+    <p class="result-line">매일 오후 6시, 엄마가 가족 단톡방에 "오늘 저녁 먹어?"라고 묻습니다. 제한 시간 안에 답해야 합니다.</p>
+    <p class="result-line">목표: 일주일에 <b>최소 3번</b> 가족과 저녁을 먹으면서, 자신의 생활(개인 생활 포인트)도 너무 포기하지 않기.</p>
+    <p class="small">같이 먹는 것도 중요하지만, 어떻게 말하는지도 중요합니다.</p>
+  `;
+  screenEl.appendChild(c);
+  const btn = el("button", "primary", "다음");
+  btn.onclick = () => { state.phase = "pickChild"; save(); routePhase(); };
+  screenEl.appendChild(btn);
+}
+
+// ----------------------- 자녀 선택 -----------------------
+
+function renderPickChild(){
+  clearScreen();
+  const c = el("div", "card");
+  c.innerHTML = `<h2>캐릭터 선택</h2><p class="small">두 자녀 중 한 명을 선택하세요. 외형 차이는 없습니다.</p>`;
+  screenEl.appendChild(c);
+
+  ["자녀 1","자녀 2"].forEach(role => {
+    const b = el("button", "choice", `<span class="num">[${role === "자녀 1" ? 1 : 2}]</span> ${role} <span class="small">( (•_•) )</span>`);
+    b.onclick = () => {
+      state.playerRole = role;
+      state.phase = "prefs";
+      save();
+      routePhase();
+    };
+    screenEl.appendChild(b);
+  });
+}
+
+// ----------------------- 음식 취향 설정 -----------------------
+
+let prefTemp = {liked:[], disliked:null, restricted:null};
+
+function renderPrefs(){
+  clearScreen();
+  prefTemp = {liked:[], disliked:null, restricted:null};
+  const c = el("div", "card");
+  c.innerHTML = `<h2>음식 취향 설정</h2><p class="small">좋아하는 음식군 2개를 선택하세요.</p>`;
+  screenEl.appendChild(c);
+
+  const likedWrap = el("div", "choice-grid");
+  FOOD_TAGS.forEach(tag => {
+    const p = el("div", "pill", tag);
+    p.onclick = () => {
+      if (prefTemp.liked.includes(tag)){
+        prefTemp.liked = prefTemp.liked.filter(t => t !== tag);
+      } else if (prefTemp.liked.length < 2) {
+        prefTemp.liked.push(tag);
+      }
+      refreshPills();
+    };
+    likedWrap.appendChild(p);
+  });
+  screenEl.appendChild(likedWrap);
+
+  const dislikeLabel = el("div", "card", `<p class="small">싫어하는 음식군 1개를 선택하세요.</p>`);
+  screenEl.appendChild(dislikeLabel);
+  const dislikeWrap = el("div", "choice-grid");
+  FOOD_TAGS.forEach(tag => {
+    const p = el("div", "pill", tag);
+    p.onclick = () => { prefTemp.disliked = tag; refreshPills(); };
+    dislikeWrap.appendChild(p);
+  });
+  screenEl.appendChild(dislikeWrap);
+
+  const restrictLabel = el("div", "card", `<p class="small">먹지 못하는 재료 1개를 선택하세요. (해당 재료 메뉴는 대체 메뉴 없이는 식사 불가)</p>`);
+  screenEl.appendChild(restrictLabel);
+  const restrictWrap = el("div", "choice-grid");
+  RESTRICT_INGS.forEach(ing => {
+    const p = el("div", "pill", ing);
+    p.onclick = () => { prefTemp.restricted = ing; refreshPills(); };
+    restrictWrap.appendChild(p);
+  });
+  screenEl.appendChild(restrictWrap);
+
+  function refreshPills(){
+    [...likedWrap.children].forEach(p => p.classList.toggle("selected", prefTemp.liked.includes(p.textContent)));
+    [...dislikeWrap.children].forEach(p => p.classList.toggle("selected", prefTemp.disliked === p.textContent));
+    [...restrictWrap.children].forEach(p => p.classList.toggle("selected", prefTemp.restricted === p.textContent));
+  }
+
+  const btn = el("button", "primary", "다음");
+  btn.onclick = () => {
+    if (prefTemp.liked.length < 2 || !prefTemp.disliked || !prefTemp.restricted){
+      alert("모든 항목을 선택해주세요.");
+      return;
+    }
+    state.preferences.likedTags = prefTemp.liked;
+    state.preferences.dislikedTag = prefTemp.disliked;
+    state.preferences.restrictedIngredient = prefTemp.restricted;
+    state.phase = "schedule";
+    save();
+    routePhase();
+  };
+  screenEl.appendChild(btn);
+}
+
+// ----------------------- 개인 일정 배치 -----------------------
+
+let scheduleTemp = [];
+
+function renderSchedule(){
+  clearScreen();
+  if (scheduleTemp.length === 0){
+    scheduleTemp = [
+      {day:null, type:null, importance:null},
+      {day:null, type:null, importance:null},
+      {day:null, type:null, importance:null},
+    ];
+  }
+  const c = el("div", "card");
+  c.innerHTML = `<h2>개인 일정 배치</h2><p class="small">일주일 중 3개의 개인 약속을 배치하세요. 1개는 '중요한 약속'으로 지정해야 합니다.</p>`;
+  screenEl.appendChild(c);
+
+  scheduleTemp.forEach((sch, idx) => {
+    const box = el("div", "card");
+    box.innerHTML = `<b>약속 ${idx+1}</b>`;
+
+    const dayRow = el("div", "choice-grid");
+    DAY_NAMES.forEach((d, di) => {
+      const p = el("div", "pill", d);
+      p.onclick = () => {
+        const already = scheduleTemp.some((s,i) => i!==idx && s.day===di);
+        if (already) { alert("이미 다른 약속이 있는 요일입니다."); return; }
+        sch.day = di;
+        renderSchedule();
+      };
+      if (sch.day === di) p.classList.add("selected");
+      dayRow.appendChild(p);
+    });
+    box.appendChild(dayRow);
+
+    const typeRow = el("div", "choice-grid");
+    SCHEDULE_TYPES.forEach(t => {
+      const p = el("div", "pill", t.label);
+      p.onclick = () => { sch.type = t.id; renderSchedule(); };
+      if (sch.type === t.id) p.classList.add("selected");
+      typeRow.appendChild(p);
+    });
+    box.appendChild(typeRow);
+
+    const impRow = el("div", "choice-grid");
+    Object.keys(IMPORTANCE).forEach(key => {
+      const p = el("div", "pill", IMPORTANCE[key].label);
+      p.onclick = () => {
+        if (key === "important"){
+          scheduleTemp.forEach((s,i) => { if (i!==idx && s.importance==="important") s.importance="normal"; });
+        }
+        sch.importance = key;
+        renderSchedule();
+      };
+      if (sch.importance === key) p.classList.add("selected");
+      impRow.appendChild(p);
+    });
+    box.appendChild(impRow);
+
+    screenEl.appendChild(box);
+  });
+
+  const btn = el("button", "primary", "다음");
+  btn.onclick = () => {
+    const complete = scheduleTemp.every(s => s.day !== null && s.type && s.importance);
+    const hasImportant = scheduleTemp.some(s => s.importance === "important");
+    if (!complete){ alert("모든 약속에 요일, 종류, 중요도를 설정하세요."); return; }
+    if (!hasImportant){ alert("1개는 '중요한 약속'으로 지정해야 합니다."); return; }
+    state.schedules = scheduleTemp.map(s => ({...s, status:"예정"}));
+    state.phase = "menuPreview";
+    buildWeeklyMenus();
+    save();
+    routePhase();
+  };
+  screenEl.appendChild(btn);
+}
+
+function buildWeeklyMenus(){
+  const pool = shuffle(MENUS.filter(m => !m.special));
+  const menus = [];
+  for (let i=0;i<7;i++){
+    menus.push(pool[i % pool.length]);
+  }
+  // 일요일 특별식
+  menus[6] = MENUS.find(m => m.name === "일요일 특별 잡채상");
+
+  const changeDays = shuffle([0,1,2,3,4,5]).slice(0,2); // 월~토 중 2일 (일요일 제외)
+  state.weeklyMenus = menus.map((m, i) => ({
+    menu: m,
+    changed: changeDays.includes(i),
+    changeEvent: null,
+  }));
+}
+
+// ----------------------- 주간 메뉴 확인 -----------------------
+
+function renderMenuPreview(){
+  clearScreen();
+  const c = el("div", "card");
+  c.innerHTML = `<h2>이번 주 예정 메뉴</h2><p class="small">7일 중 2일은 당일 사건으로 메뉴가 바뀔 수 있습니다.</p>`;
+  screenEl.appendChild(c);
+
+  const table = el("table", "menu-table");
+  let rows = `<tr><th>요일</th><th>메뉴</th><th>태그</th></tr>`;
+  state.weeklyMenus.forEach((wm, i) => {
+    const tags = wm.menu.tags.map(t => `<span class="tag ${state.preferences.dislikedTag===t ? 'off':''}">${t}</span>`).join("");
+    rows += `<tr><td>${DAY_NAMES[i]}</td><td>${wm.menu.name}${wm.changed ? ' <span class="small">(변경 가능)</span>' : ''}</td><td>${tags}</td></tr>`;
+  });
+  table.innerHTML = rows;
+  screenEl.appendChild(table);
+
+  const info = el("div", "card");
+  info.innerHTML = `
+    <p class="small">내 캐릭터: ${state.playerRole}</p>
+    <p class="small">좋아하는 음식군: ${state.preferences.likedTags.join(", ")}</p>
+    <p class="small">싫어하는 음식군: ${state.preferences.dislikedTag}</p>
+    <p class="small">못 먹는 재료: ${state.preferences.restrictedIngredient}</p>
+  `;
+  screenEl.appendChild(info);
+
+  const btn = el("button", "primary", "한 주 시작하기");
+  btn.onclick = () => {
+    state.phase = "morning";
+    state.currentDay = 0;
+    save();
+    routePhase();
+  };
+  screenEl.appendChild(btn);
+}
+
+// ----------------------- 아침 요약 -----------------------
+
+function todaySchedule(){
+  return state.schedules.find(s => s.day === state.currentDay && s.status === "예정");
+}
+
+function renderMorning(){
+  clearScreen();
+  const day = state.currentDay;
+  const wm = state.weeklyMenus[day];
+  const sch = todaySchedule();
+
+  const c = el("div", "card");
+  c.innerHTML = `
+    <h2>${DAY_NAMES[day]}요일 아침</h2>
+    <pre class="ascii">  ☀  ───────────  ☀
+  좋은 아침입니다</pre>
+    <p class="result-line">오늘 예정 메뉴: <b>${wm.menu.name}</b></p>
+    ${sch ? `<p class="result-line">오늘의 개인 약속: <b>${SCHEDULE_TYPES.find(t=>t.id===sch.type).label}</b> (${IMPORTANCE[sch.importance].label})</p>` : `<p class="result-line">오늘은 개인 약속이 없습니다.</p>`}
+    <p class="result-line">가족 식사 횟수: ${state.mealCount}/3</p>
+    <p class="result-line">가족 하트: ${heartDisplay(state.familyHeart)} / 개인 생활: ${state.personalPoints}</p>
+  `;
+  screenEl.appendChild(c);
+
+  const btn = el("button", "primary", "오늘 하루 시작");
+  btn.onclick = () => {
+    state.phase = "noon";
+    save();
+    routePhase();
+  };
+  screenEl.appendChild(btn);
+}
+
+// ----------------------- 낮 이벤트 -----------------------
+
+function renderNoon(){
+  clearScreen();
+  const c = el("div", "card");
+  c.innerHTML = `<h2>${DAY_NAMES[state.currentDay]}요일 낮</h2>`;
+  screenEl.appendChild(c);
+
+  const showEvent = Math.random() < 0.7;
+  const chatBox = el("div", "card");
+  screenEl.appendChild(chatBox);
+
+  const btn = el("button", "primary", "오후로 넘어가기");
+  btn.style.display = "none";
+  screenEl.appendChild(btn);
+
+  const lines = showEvent ? [pick(NOON_EVENTS)] : ["오늘은 낮 동안 특별한 메시지가 없었습니다."];
+  playLines(chatBox, lines.map(l => ({text:l})), () => {
+    btn.style.display = "block";
+  });
+
+  btn.onclick = () => {
+    state.phase = "chat";
+    save();
+    routePhase();
+  };
+}
+
+// ----------------------- 채팅 애니메이션 유틸 -----------------------
+
+function nameClassFor(text){
+  if (text.startsWith("엄마")) return "name-mom";
+  if (text.startsWith("아빠")) return "name-dad";
+  if (text.startsWith("동생")) return "name-sib";
+  if (text.startsWith("나")) return "name-me";
+  if (text.startsWith("친구")) return "name-friend";
+  return "";
+}
+
+function formatLine(text){
+  const idx = text.indexOf(":");
+  if (idx === -1) return `<span class="result-line">${text}</span>`;
+  const name = text.slice(0, idx);
+  const rest = text.slice(idx+1);
+  return `<div class="chat-line"><span class="name ${nameClassFor(text)}">${name}</span>:${rest}</div>`;
+}
+
+function playLines(container, lines, onDone){
+  let i = 0;
+  skipBtn.style.display = "block";
+  skipBtn.onclick = () => {
+    fastMode = true;
+    flushAll();
+  };
+
+  function flushAll(){
+    container.innerHTML = lines.map(l => formatLine(l.text)).join("");
+    skipBtn.style.display = "none";
+    if (onDone) onDone();
+  }
+
+  function step(){
+    if (fastMode){ flushAll(); return; }
+    if (i >= lines.length){
+      skipBtn.style.display = "none";
+      if (onDone) onDone();
+      return;
+    }
+    const div = document.createElement("div");
+    div.innerHTML = formatLine(lines[i].text);
+    container.appendChild(div.firstChild);
+    i++;
+    setTimeout(step, 650);
+  }
+  step();
+}
+
+// ----------------------- 오후 6시 채팅 + 선택 -----------------------
+
+let chatState = null;
+
+function computeAbsentees(){
+  // 하루에 NPC 0~2명 불참 (제한: 7일 중 최대 2회 "2명 불참")
+  const day = state.currentDay;
+  if (state.dayAbsenteesComputedDay === day) return state.dayAbsentees;
+
+  let twoAbsentDaysUsed = state.eventHistory.filter(e => e.type === "twoAbsent").length;
+  const members = ["mom","dad","sib"];
+  let count;
+  const roll = Math.random();
+  if (twoAbsentDaysUsed >= 2) {
+    count = roll < 0.5 ? 0 : 1;
+  } else {
+    count = roll < 0.35 ? 0 : roll < 0.75 ? 1 : 2;
+  }
+  const absentees = shuffle(members).slice(0, count);
+  if (count === 2) state.eventHistory.push({type:"twoAbsent", day});
+
+  state.dayAbsentees = absentees;
+  state.dayAbsenteesComputedDay = day;
+  return absentees;
+}
+
+function applyMenuChange(wm){
+  if (!wm.changed || wm.changeEvent) return wm.menu;
+  const ev = pick(CHANGE_EVENTS);
+  wm.changeEvent = ev;
+  if (ev.type === "delivery") return DELIVERY_MENU;
+  if (ev.type === "eatout") return EATOUT_MENU;
+  if (ev.type === "substitute"){
+    const newIngs = wm.menu.ings.filter(i => i !== state.preferences.restrictedIngredient);
+    return {...wm.menu, ings: newIngs, name: wm.menu.name + " (재료 대체)"};
+  }
+  // replace / sibling -> random different menu
+  const alt = pick(MENUS.filter(m => !m.special && m.name !== wm.menu.name));
+  return alt;
+}
+
+function renderChat(){
+  clearScreen();
+  const day = state.currentDay;
+  const wm = state.weeklyMenus[day];
+  const absentees = computeAbsentees();
+  const actualMenu = applyMenuChange(wm);
+  wm.actualMenu = actualMenu;
+
+  const c = el("div", "card");
+  c.innerHTML = `<h2>가족 단톡방 - ${DAY_NAMES[day]} 오후 6:00</h2>`;
+  screenEl.appendChild(c);
+
+  const chatBox = el("div", "card");
+  screenEl.appendChild(chatBox);
+
+  let momLine = `엄마: 오늘 저녁 먹어?`;
+  const lines = [{text: momLine}];
+  if (wm.changeEvent){
+    lines.push({text: `엄마: (${wm.changeEvent.text})`});
+  }
+  lines.push({text: `엄마: ${actualMenu.name} 할 건데.`});
+
+  playLines(chatBox, lines, () => {
+    startAbsenteeSequenceAndChoices(chatBox, absentees, actualMenu);
+  });
+}
+
+function startAbsenteeSequenceAndChoices(chatBox, absentees, actualMenu){
+  // NPC 선답 시뮬레이션: 메시지를 순차적으로 흘리면서 동시에 선택지와 타이머를 노출
+  const choiceArea = el("div");
+  screenEl.appendChild(choiceArea);
+
+  const timerWrap = el("div", "timer-wrap");
+  const timerBar = el("div", "timer-bar");
+  timerWrap.appendChild(timerBar);
+  const timerText = el("div", "timer-text", "남은 시간: 12초");
+  choiceArea.appendChild(timerWrap);
+  choiceArea.appendChild(timerText);
+
+  const typingDiv = el("div", "typing", "");
+  choiceArea.appendChild(typingDiv);
+
+  const choicesWrap = el("div");
+  choiceArea.appendChild(choicesWrap);
+
+  // 선택지 구성
+  const restricted = state.preferences.restrictedIngredient;
+  const hasRestricted = actualMenu.ings.includes(restricted);
+  const canSubstitute = hasRestricted; // 요청 시도 가능
+
+  const options = [];
+  options.push({key:"eat", label: hasRestricted ? "저 먹을게요 (재료 빼주실 수 있나요?)" : "저 먹어요!"});
+  const sch = todaySchedule();
+  if (sch) options.push({key:"schedule", label:"나 오늘 약속 있어."});
+  options.push({key:"late", label:"조금 늦게 먹을게."});
+  options.push({key:"ask", label:"메뉴가 뭐야?"});
+
+  let answered = false;
+  let timeLeft = 12;
+  let absenteeIdx = 0;
+
+  function renderOptions(){
+    choicesWrap.innerHTML = "";
+    options.forEach((opt, i) => {
+      const b = el("button", "choice", `<span class="num">[${i+1}]</span> ${opt.label}`);
+      b.onclick = () => finalize(opt.key, "answered");
+      choicesWrap.appendChild(b);
+    });
+  }
+  renderOptions();
+
+  function showNextAbsentee(){
+    if (absenteeIdx >= absentees.length) { typingDiv.textContent=""; return; }
+    const who = absentees[absenteeIdx];
+    typingDiv.textContent = `${TYPING_NAMES[who]}가 입력 중입니다…`;
+    setTimeout(() => {
+      if (answered) return;
+      const line = pick(ABSENT_LINES[who]);
+      const div = document.createElement("div");
+      div.innerHTML = formatLine(line);
+      chatBox.appendChild(div.firstChild);
+      typingDiv.textContent = "";
+      absenteeIdx++;
+      if (absenteeIdx < absentees.length){
+        setTimeout(showNextAbsentee, 1200);
+      }
+    }, 1400);
+  }
+  if (!fastMode) setTimeout(showNextAbsentee, 1000);
+
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    timerBar.style.width = (timeLeft/12*100)+"%";
+    timerText.textContent = `남은 시간: ${String(Math.max(timeLeft,0)).padStart(2,'0')}초`;
+    if (timeLeft <= 0){
+      clearInterval(timerInterval);
+      if (!answered) finalize("timeout", "timeout");
+    }
+  }, 1000);
+
+  function finalize(choiceKey, mode){
+    if (answered) return;
+    answered = true;
+    clearInterval(timerInterval);
+    typingDiv.textContent = "";
+    choicesWrap.innerHTML = "";
+    timerWrap.remove();
+    timerText.remove();
+
+    if (choiceKey === "ask"){
+      // 메뉴 재확인 후 다시 선택
+      answered = false;
+      const div = document.createElement("div");
+      div.innerHTML = formatLine(`나: 메뉴가 뭐야?`) + formatLine(`엄마: ${actualMenu.name}이야.`);
+      chatBox.appendChild(div);
+      options.splice(options.findIndex(o=>o.key==="ask"),1);
+      renderOptions();
+      // 남은 시간 유지, 타이머 재부착
+      screenEl.appendChild(timerWrap);
+      screenEl.appendChild(timerText);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerBar.style.width = (timeLeft/12*100)+"%";
+        timerText.textContent = `남은 시간: ${String(Math.max(timeLeft,0)).padStart(2,'0')}초`;
+        if (timeLeft <= 0){
+          clearInterval(timerInterval);
+          if (!answered) finalize("timeout", "timeout");
+        }
+      }, 1000);
+      return;
+    }
+
+    resolveDay(choiceKey, mode, absentees, actualMenu, sch, hasRestricted);
+  }
+}
+
+// ----------------------- 하루 결과 산출 -----------------------
+
+function resolveDay(choiceKey, mode, absentees, actualMenu, sch, hasRestricted){
+  const before = { heart: state.familyHeart, pts: state.personalPoints, meals: state.mealCount };
+  const lines = [];
+  let ateMeal = false;
+  let attendedSchedule = false;
+
+  const absentCount = absentees.length;
+
+  if (mode === "timeout" || choiceKey === "timeout"){
+    state.familyHeart = clamp(state.familyHeart - 0.5, 0, 5);
+    lines.push("답장을 미루다 시간이 지나버렸다.");
+    lines.push("엄마: ...그래, 바쁜가 보다. 너 몫은 남겨둘게.");
+  } else if (choiceKey === "eat"){
+    if (hasRestricted){
+      // 대체 메뉴 요청 성공 처리 (간단화: 항상 성공)
+      ateMeal = true;
+      lines.push("엄마: 네가 못 먹는 재료는 빼고 줄게!");
+      lines.push("가족과 함께 저녁을 먹었다. (대체 메뉴 적용, 추가 점수 없음)");
+    } else {
+      ateMeal = true;
+      const liked = actualMenu.tags.some(t => state.preferences.likedTags.includes(t));
+      const disliked = actualMenu.tags.includes(state.preferences.dislikedTag);
+      if (liked){
+        state.personalPoints = clamp(state.personalPoints + 5, 0, 100);
+        lines.push(`좋아하는 메뉴라 더 맛있게 먹었다. (개인 생활 +5)`);
+      } else if (disliked){
+        state.personalPoints = clamp(state.personalPoints - 3, 0, 100);
+        lines.push(`썩 좋아하는 메뉴는 아니었지만 먹었다. (개인 생활 -3)`);
+      } else {
+        lines.push(`무난하게 가족과 저녁을 먹었다.`);
+      }
+      if (sch){
+        // 약속이 있었는데 식사를 선택 -> 약속 취소
+        sch.status = "취소";
+        const cost = IMPORTANCE[sch.importance].cost;
+        state.personalPoints = clamp(state.personalPoints - cost, 0, 100);
+        lines.push(`개인 약속을 취소했다. (개인 생활 -${cost})`);
+        if (absentCount >= 1){
+          state.familyHeart = clamp(state.familyHeart + 0.5, 0, 5);
+          lines.push(`약속까지 취소하고 가족과 함께해줘서 다들 고마워했다. (가족 하트 +0.5)`);
+        }
+      }
+    }
+  } else if (choiceKey === "schedule"){
+    attendedSchedule = true;
+    sch.status = "참석";
+    const reward = IMPORTANCE[sch.importance].reward;
+    state.personalPoints = clamp(state.personalPoints + reward, 0, 100);
+    lines.push(`개인 약속에 참석했다. (개인 생활 +${reward})`);
+    if (absentCount >= 2){
+      state.familyHeart = clamp(state.familyHeart - 0.5, 0, 5);
+      lines.push(`이미 두 명이나 빠진 날 너까지 빠지자 분위기가 가라앉았다. (가족 하트 -0.5)`);
+    } else {
+      lines.push(`미리 말해둔 약속이라 가족도 이해해주었다.`);
+    }
+  } else if (choiceKey === "late"){
+    ateMeal = true;
+    lines.push(`식사 후 약속에 조금 늦게 참석했다.`);
+    if (sch){
+      state.personalPoints = clamp(state.personalPoints - 5, 0, 100);
+      attendedSchedule = true;
+      sch.status = "지각 참석";
+      lines.push(`늦게 도착한 만큼 눈치가 보였다. (개인 생활 -5)`);
+    } else {
+      lines.push(`가족과 저녁을 먹고 느긋하게 하루를 마쳤다.`);
+    }
+  }
+
+  if (ateMeal){
+    state.mealCount += 1;
+    const totalAbsent = absentCount + (attendedSchedule || mode==="timeout" ? 1 : 0);
+    if (absentCount === 0 && !attendedSchedule){
+      state.fullFamilyMealCount += 1;
+      state.familyHeart = clamp(state.familyHeart + 0.5, 0, 5);
+      lines.push(`온 가족이 모두 모여 저녁을 먹었다! (가족 하트 +0.5)`);
+      if (state.currentDay === 6) state.sundayFullMeal = true;
+    }
+  }
+
+  if (!ateMeal && (choiceKey === "schedule") && absentCount + 1 >= 3){
+    state.familyHeart = clamp(state.familyHeart - 0.5, 0, 5);
+    lines.push(`플레이어까지 세 번째 불참자가 되어 가족 하트가 줄었다. (-0.5)`);
+  }
+
+  state.choices.push({day: state.currentDay, choice: choiceKey, absentCount});
+
+  renderDayEnd(before, lines);
+}
+
+function renderDayEnd(before, lines){
+  clearScreen();
+  const c = el("div", "card");
+  c.innerHTML = `<h2>${DAY_NAMES[state.currentDay]}요일 저녁 결과</h2>`;
+  screenEl.appendChild(c);
+
+  const resultBox = el("div", "card");
+  screenEl.appendChild(resultBox);
+
+  playLines(resultBox, lines.map(l => ({text:l})), () => {
+    const summary = el("div", "card");
+    const heartDelta = state.familyHeart - before.heart;
+    const ptsDelta = state.personalPoints - before.pts;
+    summary.innerHTML = `
+      <p class="result-line">가족 하트: ${heartDisplay(before.heart)} → ${heartDisplay(state.familyHeart)}
+        <span class="${heartDelta>=0?'delta-up':'delta-down'}">(${heartDelta>=0?'+':''}${heartDelta})</span></p>
+      <p class="result-line">개인 생활: ${before.pts} → ${state.personalPoints}
+        <span class="${ptsDelta>=0?'delta-up':'delta-down'}">(${ptsDelta>=0?'+':''}${ptsDelta})</span></p>
+      <p class="result-line">누적 가족 식사: ${state.mealCount}/3</p>
+    `;
+    screenEl.appendChild(summary);
+
+    const btn = el("button", "primary", state.currentDay < 6 ? "다음 날로" : "일요일 정산 보기");
+    btn.onclick = () => {
+      if (state.currentDay < 6){
+        state.currentDay += 1;
+        state.phase = "morning";
+      } else {
+        state.phase = "summary";
+      }
+      save();
+      routePhase();
+    };
+    screenEl.appendChild(btn);
+  });
+}
+
+// ----------------------- 주간 정산 -----------------------
+
+function computeEnding(){
+  const { mealCount, familyHeart, personalPoints, fullFamilyMealCount, sundayFullMeal } = state;
+  const cancelledCount = state.schedules.filter(s => s.status === "취소").length;
+  const attendedCount = state.schedules.filter(s => s.status === "참석" || s.status === "지각 참석").length;
+
+  let mainEnding;
+  if (mealCount >= 3 && familyHeart >= 3.5 && personalPoints >= 40){
+    mainEnding = {
+      id: "good",
+      title: "잘 먹었습니다",
+      desc: "가족과 개인 생활의 균형을 잘 맞춘 한 주였다. 식탁에서도, 삶에서도 너무 치우치지 않았다."
+    };
+  } else if (mealCount >= 7 && personalPoints < 30){
+    mainEnding = {
+      id: "perfect",
+      title: "개근상",
+      desc: "일주일 내내 가족 식사에 빠짐없이 참석했다. 하지만 그만큼 네 자신의 일정은 거의 남지 않았다."
+    };
+  } else if (attendedCount >= 3 && mealCount <= 2){
+    mainEnding = {
+      id: "schedule_pro",
+      title: "프로 약속러",
+      desc: "개인 약속은 모두 지켰다. 하지만 가족과 식탁에 둘러앉은 기억은 많지 않다."
+    };
+  } else if (mealCount < 3 && familyHeart <= 2.5){
+    mainEnding = {
+      id: "tomorrow",
+      title: "엄마, 내일은 꼭 먹을게",
+      desc: "이번 주는 아쉽게 지나갔다. 하지만 엄마는 다음 기회를 기다리고 있다."
+    };
+  } else {
+    mainEnding = {
+      id: "normal",
+      title: "그럭저럭 한 주",
+      desc: "완벽하지는 않았지만, 나름의 방식으로 한 주를 보냈다."
+    };
+  }
+
+  const bonus = sundayFullMeal ? {
+    title: "넷이서 한 끼",
+    desc: "일요일, 드디어 네 가족이 모두 한 식탁에 모였다."
+  } : null;
+
+  return { mainEnding, bonus, cancelledCount, attendedCount };
+}
+
+function renderSummary(){
+  clearScreen();
+  const result = computeEnding();
+  state.endingId = result.mainEnding.id;
+
+  const c = el("div", "card");
+  c.innerHTML = `
+    <h2>일요일 밤 - 주간 정산</h2>
+    <pre class="ascii">   ✦ 한 주가 끝났습니다 ✦</pre>
+    <p class="result-line">가족과 식사한 횟수: ${state.mealCount}회</p>
+    <p class="result-line">네 식구 모두 모인 횟수: ${state.fullFamilyMealCount}회</p>
+    <p class="result-line">지킨 개인 약속: ${result.attendedCount}개</p>
+    <p class="result-line">취소한 개인 약속: ${result.cancelledCount}개</p>
+    <p class="result-line">최종 가족 하트: ${heartDisplay(state.familyHeart)}</p>
+    <p class="result-line">최종 개인 생활 포인트: ${state.personalPoints}</p>
+  `;
+  screenEl.appendChild(c);
+
+  const btn = el("button", "primary", "엔딩 보기");
+  btn.onclick = () => {
+    state.phase = "ending";
+    state.endingResult = result;
+    save();
+    routePhase();
+  };
+  screenEl.appendChild(btn);
+}
+
+// ----------------------- 엔딩 -----------------------
+
+function renderEnding(){
+  clearScreen();
+  const result = state.endingResult || computeEnding();
+
+  const art = `
+     ┌──────────────┐
+     │   (｡•́‿•̀｡)    │
+     │  잘 먹었습니다  │
+     └──────────────┘
+`;
+
+  const c = el("div", "card");
+  c.innerHTML = `
+    <h1>엔딩: ${result.mainEnding.title}</h1>
+    <pre class="ascii">${art}</pre>
+    <p class="result-line">${result.mainEnding.desc}</p>
+    ${result.bonus ? `<div class="card"><h3>+ ${result.bonus.title}</h3><p class="result-line">${result.bonus.desc}</p></div>` : ""}
+    <p class="small" style="margin-top:16px;">같이 먹는 것도 중요하지만, 어떻게 말하는지도 중요하다.</p>
+  `;
+  screenEl.appendChild(c);
+
+  const btn = el("button", "primary", "다시 하기");
+  btn.onclick = () => {
+    clearSave();
+    fastMode = false;
+    state = freshState();
+    state.phase = "title";
+    routePhase();
+  };
+  screenEl.appendChild(btn);
+}
+
+// ----------------------- 라우터 -----------------------
+
+function routePhase(){
+  renderStatus();
+  if (!state){ renderTitle(); return; }
+  switch(state.phase){
+    case "title": renderTitle(); break;
+    case "intro": renderIntro(); break;
+    case "pickChild": renderPickChild(); break;
+    case "prefs": renderPrefs(); break;
+    case "schedule": renderSchedule(); break;
+    case "menuPreview": renderMenuPreview(); break;
+    case "morning": renderMorning(); break;
+    case "noon": renderNoon(); break;
+    case "chat": renderChat(); break;
+    case "summary": renderSummary(); break;
+    case "ending": renderEnding(); break;
+    default: renderTitle();
+  }
+}
+
+// ----------------------- 시작 -----------------------
+renderTitle();
+
+})();
+</script>
+</body>
+</html>

@@ -2,250 +2,784 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>잘먹었습니다 - 프로토타입</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>잘 먹었습니다!</title>
 <style>
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: #1b1b1b;
-    color: #e8e8e8;
-    font-family: 'Courier New', Consolas, monospace;
-    display: flex;
-    justify-content: center;
-    min-height: 100vh;
+@font-face {
+  font-family: "DosGothic";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/DOSGothic.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --page: #F0EEE7;
+  --paper: #FFFDF7;
+  --paper-strong: #FFFFFF;
+  --ink: #272621;
+  --ink-soft: #6F6C63;
+  --line-faint: #D9D5C9;
+  --yellow: #F2DA55;
+  --yellow-soft: #FFF4AE;
+  --gray-wash: #ECE9E0;
+
+  --line: 2px solid var(--ink);
+  --line-heavy: 3px solid var(--ink);
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-round: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --font-display: "DosGothic", "Courier New", monospace;
+  --font-body: "DosGothic", "Courier New", monospace;
+  --font-number: "DosGothic", "Courier New", monospace;
+
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-md: 16px;
+  --text-lg: 20px;
+  --text-xl: 25px;
+  --text-title: 38px;
+
+  --ease-paper: cubic-bezier(.2, .75, .25, 1);
+  --duration-fast: 100ms;
+  --duration-normal: 180ms;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+
+html, body, button, input, select, textarea {
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-size: var(--text-md);
+  line-height: 1.6;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100dvh;
+  -webkit-text-size-adjust: 100%;
+}
+
+
+/* ---------- GameShell ---------- */
+.game-shell {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  min-height: 100dvh;
+  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+@media (min-width: 600px) {
+  body { align-items: center; padding: var(--space-6) 0; }
+  .game-shell {
+    width: 420px;
+    min-height: 0;
+    height: min(844px, calc(100dvh - 48px));
+    border: var(--line);
+    border-radius: var(--radius-md);
+    box-shadow: 0 6px 20px rgba(39, 38, 33, .08);
   }
-  #app {
-    width: 100%;
-    max-width: 480px;
-    background: #111;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    border-left: 1px solid #333;
-    border-right: 1px solid #333;
+}
+
+.shell-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-4) 18px var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+@media (max-width: 360px) {
+  .shell-body { padding-left: var(--space-3); padding-right: var(--space-3); }
+}
+
+/* ---------- TopHUD ---------- */
+.top-hud {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 52px;
+  padding: var(--space-2) 18px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line-faint);
+}
+.top-hud[hidden] { display: none; }
+.day-stamp {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper-strong);
+  font-size: var(--text-md);
+  transform: rotate(-1.5deg);
+}
+.hud-meters { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.meter-row { display: flex; align-items: center; gap: var(--space-1); }
+.meter-label { font-size: var(--text-xs); color: var(--ink-soft); width: 28px; flex: none; }
+.meter { display: inline-flex; align-items: center; gap: 2px; border-radius: var(--radius-sm); }
+.meter.is-max { box-shadow: 0 0 0 2px var(--yellow); }
+.meter-cell {
+  position: relative;
+  display: inline-block;
+  width: 16px;
+  height: 17px;
+  font-size: 14px;
+  line-height: 17px;
+  text-align: left;
+}
+.meter-cell .mc-empty { display: block; filter: grayscale(1); opacity: .32; }
+.meter-cell .mc-fill {
+  position: absolute;
+  left: 0; top: 0;
+  height: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.meter-num, .hud-number, .timer-number {
+  font-family: var(--font-number);
+  font-variant-numeric: tabular-nums;
+}
+.meter-num { font-size: var(--text-xs); color: var(--ink-soft); margin-left: var(--space-1); }
+.goal-tag {
+  flex: none;
+  font-size: var(--text-xs);
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  background: var(--paper-strong);
+  white-space: nowrap;
+}
+
+/* ---------- Typography ---------- */
+h1, h2, h3 { margin: 0; font-weight: 400; }
+.title-main {
+  font-family: var(--font-display);
+  font-size: var(--text-title);
+  line-height: 1.2;
+  letter-spacing: .02em;
+  text-align: center;
+}
+.screen-title { font-size: var(--text-xl); line-height: 1.3; margin-bottom: var(--space-2); }
+.body-text { font-size: var(--text-md); line-height: 1.6; margin: 0 0 var(--space-2); }
+.body-text:last-child { margin-bottom: 0; }
+.sub-text { font-size: var(--text-sm); line-height: 1.5; color: var(--ink-soft); margin: 0; }
+.center { text-align: center; }
+
+/* ---------- Panel ---------- */
+.panel {
+  border: var(--line);
+  border-radius: var(--radius-md);
+  background: var(--paper-strong);
+  padding: var(--space-3) var(--space-4);
+}
+.panel.plain { border: none; background: transparent; padding: 0; }
+.panel + .panel { margin-top: var(--space-3); }
+
+/* ---------- Scene (이모지) ---------- */
+.scene { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); }
+.scene-caption { font-size: var(--text-sm); color: var(--ink-soft); text-align: center; }
+
+.emoji-scene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) 0;
+  user-select: none;
+}
+.emoji-row { display: flex; gap: var(--space-6); font-size: 40px; line-height: 1; }
+.emoji-table {
+  display: grid;
+  place-items: center;
+  min-width: 190px;
+  padding: var(--space-3) var(--space-5);
+  border: var(--line);
+  border-radius: var(--radius-md);
+  background: var(--paper-strong);
+  font-size: 40px;
+  line-height: 1;
+}
+
+.scene-emoji {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  font-size: 76px;
+  line-height: 1;
+  margin: var(--space-4) 0;
+  user-select: none;
+}
+.scene-emoji > span { position: relative; z-index: 1; }
+.scene-emoji.highlight::before {
+  content: "";
+  position: absolute;
+  width: 104px;
+  height: 104px;
+  background: var(--yellow-soft);
+  border-radius: 50%;
+  transform: rotate(-3deg);
+  z-index: 0;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px var(--space-4);
+  background: var(--paper-strong);
+  color: var(--ink);
+  border: var(--line);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: var(--text-md);
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-paper),
+              background-color var(--duration-fast) var(--ease-paper),
+              box-shadow var(--duration-fast) var(--ease-paper);
+}
+.btn:hover:not([disabled]) { transform: translateY(-1px); box-shadow: 0 3px 0 -1px var(--yellow); }
+.btn:active:not([disabled]) { transform: translateY(1px); box-shadow: none; }
+.btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.btn[disabled] {
+  cursor: default;
+  opacity: .55;
+  transform: none;
+  box-shadow: none;
+  background-image: repeating-linear-gradient(-45deg, transparent 0 4px, var(--gray-wash) 4px 7px);
+}
+.btn.is-selected { background: var(--yellow); opacity: 1; background-image: none; }
+.btn.is-selected .key { font-weight: 400; }
+.btn.primary { background: var(--yellow); text-align: center; }
+.btn.secondary { text-align: center; }
+.btn.ghost {
+  border: none;
+  background: transparent;
+  min-height: 44px;
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+  text-decoration: underline;
+  padding: 10px;
+}
+.btn.ghost:hover:not([disabled]) { box-shadow: none; color: var(--ink); }
+.btn .key { display: inline-block; min-width: 1.5em; }
+.btn .check { float: right; }
+
+.action-area { margin-top: auto; padding-top: var(--space-2); display: flex; flex-direction: column; gap: var(--space-2); }
+
+/* FloatingTool */
+.tool-btn {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  width: 44px;
+  height: 44px;
+  border: var(--line);
+  border-radius: var(--radius-round);
+  background: var(--paper-strong);
+  font: inherit;
+  font-size: var(--text-md);
+  line-height: 1;
+  cursor: pointer;
+  z-index: 9;
+}
+.tool-btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.tool-btn[hidden] { display: none; }
+
+/* ---------- Chat ---------- */
+.chat { display: flex; flex-direction: column; gap: var(--space-3); }
+.msg { display: flex; gap: var(--space-2); align-items: flex-start; animation: msgIn 140ms var(--ease-paper) both; }
+@keyframes msgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.avatar-emoji {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: var(--line);
+  border-radius: var(--radius-md);
+  background: var(--paper-strong);
+  font-size: 21px;
+  line-height: 1;
+  user-select: none;
+}
+.msg-body { flex: 1; min-width: 0; }
+.msg-name { font-size: var(--text-sm); color: var(--ink-soft); margin-bottom: 2px; }
+.msg-strip {
+  position: relative;
+  border: var(--line);
+  border-radius: var(--radius-md);
+  background: var(--paper-strong);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-md);
+  line-height: 1.6;
+}
+.msg-strip::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 14px;
+  width: 0; height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-right: 8px solid var(--ink);
+}
+.msg.is-latest .msg-strip::after {
+  content: "";
+  position: absolute;
+  left: var(--space-3);
+  bottom: -6px;
+  width: 44px;
+  height: 3px;
+  background: var(--yellow);
+}
+.msg.from-me { flex-direction: row-reverse; }
+.msg.from-me .msg-name { text-align: right; }
+.msg.from-me .msg-strip::before { left: auto; right: -8px; border-right: none; border-left: 8px solid var(--ink); }
+.msg.from-me .msg-strip::after { left: auto; right: var(--space-3); }
+.msg-note { font-size: var(--text-sm); color: var(--ink-soft); text-align: center; padding: var(--space-1) 0; }
+
+.ink-dots { display: inline-flex; gap: 4px; align-items: center; height: 16px; }
+.ink-dots i {
+  width: 4px; height: 4px; border-radius: 50%; background: var(--ink-soft);
+  animation: dot 720ms var(--ease-paper) infinite;
+}
+.ink-dots i:nth-child(2) { animation-delay: 120ms; }
+.ink-dots i:nth-child(3) { animation-delay: 240ms; }
+@keyframes dot { 0%, 100% { opacity: .25; } 40% { opacity: 1; } }
+
+/* ---------- Timer ---------- */
+.timer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  border: var(--line);
+  border-radius: var(--radius-md);
+  background: var(--paper-strong);
+  padding: var(--space-2) var(--space-3);
+}
+.timer-label { font-size: var(--text-sm); }
+.timer-cells { display: flex; gap: var(--space-1); }
+.timer-cell { width: 14px; height: 14px; border: 2px solid var(--ink); background: var(--yellow); }
+.timer-cell.is-empty { background: var(--paper-strong); }
+.timer-number { font-size: var(--text-lg); min-width: 1.4em; text-align: right; }
+.timer.is-urgent { box-shadow: inset 0 0 0 1px var(--ink); }
+.timer.is-urgent .timer-number { animation: nudge 220ms var(--ease-paper) 1; }
+@keyframes nudge { 0%, 100% { transform: translateX(0); } 30% { transform: translateX(-2px); } 70% { transform: translateX(2px); } }
+
+/* ---------- Choice cards (취향) ---------- */
+.card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+@media (max-width: 360px) { .card-grid { grid-template-columns: 1fr; } }
+.choice-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 56px;
+  padding: var(--space-3);
+  border: var(--line);
+  border-radius: var(--radius-md);
+  background: var(--paper-strong);
+  font: inherit;
+  font-size: var(--text-md);
+  text-align: left;
+  cursor: pointer;
+}
+.choice-card:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.choice-card .scribble {
+  position: absolute;
+  left: 6px; right: 6px; top: 4px; bottom: 4px;
+  background: var(--yellow-soft);
+  border-radius: 50%;
+  transform: rotate(-1.2deg);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-paper);
+}
+.choice-card.is-selected .scribble { opacity: 1; }
+.choice-card > .label { position: relative; z-index: 1; display: flex; align-items: center; gap: var(--space-2); }
+.choice-card .check { position: absolute; top: 4px; right: 8px; z-index: 1; font-size: var(--text-sm); }
+.food-emoji { font-size: 18px; line-height: 1; }
+
+.step-count { font-size: var(--text-sm); color: var(--ink-soft); }
+
+/* ---------- Schedule ---------- */
+.day-rail { display: flex; gap: var(--space-2); overflow-x: auto; padding: var(--space-1) 2px var(--space-3); }
+.day-card {
+  position: relative;
+  flex: none;
+  width: 62px;
+  min-height: 86px;
+  padding: var(--space-2) 4px;
+  border: var(--line);
+  border-radius: var(--radius-md);
+  background: var(--paper-strong);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2px;
+  text-align: center;
+}
+.day-card:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.day-card.is-filled { background: var(--yellow-soft); }
+.day-card .day-name { font-size: var(--text-md); }
+.day-card .day-slot { font-size: var(--text-xs); color: var(--ink-soft); line-height: 1.3; }
+.day-card .star { font-size: var(--text-sm); }
+.day-remove {
+  position: absolute;
+  top: 2px; right: 2px;
+  width: 26px; height: 26px;
+  border: var(--line);
+  border-radius: var(--radius-round);
+  background: var(--paper-strong);
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: 1;
+  cursor: pointer;
+  z-index: 2;
+}
+.day-remove::before { content: ""; position: absolute; inset: -8px; }
+.day-remove:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+
+.chip-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.chip {
+  min-height: 44px;
+  padding: 10px var(--space-3);
+  border: var(--line);
+  border-radius: var(--radius-md);
+  background: var(--paper-strong);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+.chip:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.chip.is-selected { background: var(--yellow); }
+
+/* ---------- Receipt (주간 메뉴) ---------- */
+.receipt { border: var(--line); border-radius: var(--radius-md); background: var(--paper-strong); padding: var(--space-3); }
+.receipt-row {
+  display: grid;
+  grid-template-columns: 46px 22px 1fr auto;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 7px 0;
+  border-bottom: 1px dashed var(--line-faint);
+  font-size: var(--text-sm);
+}
+.receipt-row:last-child { border-bottom: none; }
+.menu-name.is-liked { box-shadow: inset 0 -7px 0 var(--yellow-soft); }
+.menu-flag { font-size: var(--text-sm); }
+
+/* ---------- Table scene ---------- */
+.table-wrap { position: relative; width: 100%; padding: var(--space-3) 0 var(--space-4); }
+.table-layout {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr minmax(120px, 1.4fr) 1fr;
+  grid-template-rows: auto auto auto;
+  gap: var(--space-2);
+  align-items: center;
+  justify-items: center;
+}
+.seat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  text-align: center;
+  animation: stamp 160ms var(--ease-paper) both;
+}
+@keyframes stamp { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+.seat-face {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: var(--line);
+  border-radius: var(--radius-md);
+  background: var(--paper-strong);
+  font-size: 24px;
+  line-height: 1;
+  user-select: none;
+}
+.seat.is-late .seat-face { opacity: .6; }
+.seat.is-empty .seat-face { border-style: dashed; filter: grayscale(1); opacity: .45; }
+.seat-name { font-size: var(--text-xs); line-height: 1.25; }
+.seat-state { font-size: var(--text-xs); line-height: 1.25; color: var(--ink-soft); }
+.seat.is-empty .seat-name { color: var(--ink-soft); }
+.seat.pos-mom { grid-column: 2; grid-row: 1; flex-direction: column-reverse; }
+.seat.pos-dad { grid-column: 1; grid-row: 2; }
+.seat.pos-sib { grid-column: 3; grid-row: 2; }
+.seat.pos-me  { grid-column: 2; grid-row: 3; }
+
+.table-top {
+  grid-column: 2;
+  grid-row: 2;
+  width: 100%;
+  min-height: 104px;
+  display: grid;
+  place-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-2);
+  border: var(--line);
+  border-radius: var(--radius-md);
+  background: var(--paper-strong);
+  transform: rotate(-.3deg);
+}
+.table-dish { font-size: 32px; line-height: 1; }
+.receipt-tag {
+  background: var(--paper);
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  border-left: 2px dashed var(--ink);
+  border-right: 2px dashed var(--ink);
+  border-radius: var(--radius-sm);
+  padding: 2px var(--space-2);
+  font-size: var(--text-sm);
+  text-align: center;
+  line-height: 1.35;
+}
+.spark { position: absolute; font-size: 18px; animation: sparkIn 220ms var(--ease-paper) both; }
+.spark.s1 { left: 4%; top: 26%; }
+.spark.s2 { right: 4%; top: 26%; }
+.spark.s3 { left: 10%; bottom: 10%; }
+.spark.s4 { right: 10%; bottom: 10%; }
+@keyframes sparkIn { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: scale(1); } }
+
+/* ---------- Result / reward ---------- */
+.reward-line { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-md); margin: var(--space-1) 0; }
+.reward-mark {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 24px; height: 24px;
+  flex: none;
+  font-size: 15px;
+  line-height: 1;
+  isolation: isolate;
+}
+.reward-mark::before {
+  content: "";
+  position: absolute;
+  width: 23px; height: 23px;
+  border-radius: 50%;
+  background: var(--yellow-soft);
+  z-index: -1;
+  animation: popIn 180ms var(--ease-paper) both;
+}
+@keyframes popIn { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* ---------- Plates (결산) ---------- */
+.plates { display: flex; gap: var(--space-2); justify-content: center; flex-wrap: wrap; }
+.plate-col { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.plate {
+  width: 38px; height: 38px;
+  border: var(--line);
+  border-radius: 50%;
+  background: var(--paper-strong);
+  display: grid;
+  place-items: center;
+  font-size: var(--text-md);
+}
+.plate-day { font-size: var(--text-xs); color: var(--ink-soft); }
+.stamp-note {
+  display: inline-block;
+  border: var(--line);
+  border-radius: var(--radius-sm);
+  padding: 4px var(--space-2);
+  font-size: var(--text-sm);
+  transform: rotate(-1.2deg);
+  background: var(--paper-strong);
+}
+.ending-lines { font-size: var(--text-md); line-height: 1.7; }
+
+/* ---------- Overlay / modal ---------- */
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: rgba(39, 38, 33, .22);
+}
+.overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(-45deg, transparent 0 5px, rgba(39, 38, 33, .08) 5px 7px);
+}
+.overlay-card {
+  position: relative;
+  width: 88%;
+  max-width: 380px;
+  max-height: 86%;
+  overflow-y: auto;
+  border: var(--line-heavy);
+  border-radius: var(--radius-md);
+  background: var(--paper-strong);
+  padding: var(--space-4);
+  text-align: center;
+  animation: cardIn 220ms var(--ease-paper) both;
+}
+@keyframes cardIn { from { opacity: 0; transform: scale(.97); } to { opacity: 1; transform: scale(1); } }
+.overlay-close {
+  position: absolute;
+  top: var(--space-2); right: var(--space-2);
+  width: 36px; height: 36px;
+  border: var(--line);
+  border-radius: var(--radius-round);
+  background: var(--paper-strong);
+  font: inherit;
+  cursor: pointer;
+  line-height: 1;
+}
+.overlay-close:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.event-emoji {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto var(--space-2);
+  display: grid;
+  place-items: center;
+  font-size: 64px;
+  line-height: 1;
+  border: var(--line);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+  user-select: none;
+}
+
+/* ---------- Toast ---------- */
+.toast {
+  position: absolute;
+  left: 50%; top: 62px;
+  transform: translateX(-50%);
+  z-index: 15;
+  border: var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper-strong);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+  animation: toastIn 1.2s var(--ease-paper) forwards;
+}
+@keyframes toastIn { 0% { opacity: 0; } 12% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 80ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 80ms !important;
   }
-  #statusbar {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 12px;
-    background: #222;
-    border-bottom: 1px solid #333;
-    font-size: 12px;
-    flex-wrap: wrap;
-    gap: 4px;
+  .msg, .seat, .overlay-card, .reward-mark::before, .spark {
+    animation-name: fadeOnly !important;
   }
-  #statusbar span { white-space: nowrap; }
-  .heart-full { color: #ff5c7a; }
-  .heart-empty { color: #555; }
-  #screen {
-    flex: 1;
-    padding: 16px;
-    overflow-y: auto;
-  }
-  h1, h2, h3 { margin-top: 0; }
-  h1 { font-size: 22px; text-align: center; letter-spacing: 2px; }
-  pre.ascii {
-    text-align: center;
-    color: #9fe8a8;
-    font-size: 11px;
-    line-height: 1.2;
-    margin: 10px 0;
-    white-space: pre;
-  }
-  .card {
-    background: #1d1d1d;
-    border: 1px solid #333;
-    border-radius: 6px;
-    padding: 12px;
-    margin-bottom: 10px;
-  }
-  .chat-line {
-    margin: 6px 0;
-    line-height: 1.5;
-    font-size: 14px;
-    opacity: 0;
-    animation: fadeIn 0.25s forwards;
-  }
-  @keyframes fadeIn { to { opacity: 1; } }
-  .name { font-weight: bold; }
-  .name-mom { color: #ffd27a; }
-  .name-dad { color: #7ac6ff; }
-  .name-sib { color: #c29bff; }
-  .name-me { color: #9fe8a8; }
-  .name-friend { color: #ff9ab0; }
-  .typing { color: #888; font-style: italic; font-size: 13px; margin: 4px 0; }
-  .timer-wrap {
-    background: #222;
-    border-radius: 4px;
-    height: 10px;
-    margin: 10px 0;
-    overflow: hidden;
-    border: 1px solid #444;
-  }
-  .timer-bar {
-    height: 100%;
-    background: #ff5c7a;
-    transition: width 1s linear;
-  }
-  .timer-text { font-size: 12px; color: #ff9ab0; text-align: right; }
-  button.choice {
-    display: block;
-    width: 100%;
-    text-align: left;
-    background: #262626;
-    color: #e8e8e8;
-    border: 1px solid #3a3a3a;
-    border-radius: 6px;
-    padding: 10px 12px;
-    margin: 6px 0;
-    font-family: inherit;
-    font-size: 14px;
-    cursor: pointer;
-  }
-  button.choice:hover { background: #333; border-color: #555; }
-  button.choice .num { color: #ffd27a; margin-right: 6px; }
-  button.primary {
-    display: block;
-    width: 100%;
-    background: #3a6a4a;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 12px;
-    font-size: 15px;
-    font-family: inherit;
-    cursor: pointer;
-    margin-top: 12px;
-  }
-  button.primary:hover { background: #4a8a5e; }
-  button.secondary {
-    display: block;
-    width: 100%;
-    background: #2a2a2a;
-    color: #ccc;
-    border: 1px solid #444;
-    border-radius: 6px;
-    padding: 10px;
-    font-size: 13px;
-    font-family: inherit;
-    cursor: pointer;
-    margin-top: 8px;
-  }
-  .tag {
-    display: inline-block;
-    background: #2a3a2a;
-    color: #9fe8a8;
-    border-radius: 10px;
-    padding: 2px 8px;
-    font-size: 12px;
-    margin: 2px;
-  }
-  .tag.off { background: #3a2a2a; color: #ff9a9a; }
-  .tag.selected { outline: 2px solid #9fe8a8; }
-  .choice-grid { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
-  .pill {
-    background: #262626;
-    border: 1px solid #444;
-    border-radius: 16px;
-    padding: 6px 14px;
-    font-size: 13px;
-    cursor: pointer;
-  }
-  .pill.selected { background: #3a6a4a; border-color: #5a9a6e; color: #fff; }
-  .small { font-size: 12px; color: #999; }
-  .menu-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .menu-table td, .menu-table th { padding: 6px 4px; border-bottom: 1px solid #333; }
-  .result-line { font-size: 14px; margin: 6px 0; line-height: 1.5; }
-  .delta-up { color: #9fe8a8; }
-  .delta-down { color: #ff9a9a; }
-  .skip-btn {
-    position: fixed;
-    bottom: 10px;
-    right: calc(50% - 230px);
-    background: #2a2a2a;
-    border: 1px solid #555;
-    color: #ccc;
-    padding: 6px 10px;
-    border-radius: 14px;
-    font-size: 11px;
-    cursor: pointer;
-    z-index: 50;
-  }
-  @media (max-width: 480px) {
-    .skip-btn { right: 10px; }
-  }
-  select, input[type=text] {
-    background: #222;
-    color: #eee;
-    border: 1px solid #444;
-    border-radius: 4px;
-    padding: 6px;
-    font-family: inherit;
-  }
+  @keyframes fadeOnly { from { opacity: 0; } to { opacity: 1; } }
+  .seat { transform: translate(-50%, -50%); }
+  .btn:hover:not([disabled]) { transform: none; }
+  .timer.is-urgent .timer-number { animation: none; }
+}
 </style>
 </head>
 <body>
-<div id="app">
-  <div id="statusbar"></div>
-  <div id="screen"></div>
-</div>
-<button class="skip-btn" id="skipBtn" style="display:none">⏩ 빨리 보기</button>
+
+<main class="game-shell" id="app" data-screen="title">
+  <header class="top-hud" id="hud" hidden></header>
+  <div class="shell-body" id="screen"></div>
+  <button class="tool-btn" id="skipBtn" type="button" hidden aria-label="대사 빨리 보기">»</button>
+  <p class="sr-only" id="live" role="status" aria-live="polite"></p>
+</main>
 
 <script>
 (function(){
 "use strict";
 
-// ----------------------- 데이터 -----------------------
+// ===================== 데이터 =====================
 
 const DAY_NAMES = ["월","화","수","목","금","토","일"];
 
 const FOOD_TAGS = ["해산물","고기","면","국물","매운 음식","담백한 음식"];
+const TAG_ICON = {
+  "해산물":"🦐", "고기":"🥩", "면":"🍜", "국물":"🍲",
+  "매운 음식":"🌶️", "담백한 음식":"🍚"
+};
 const RESTRICT_INGS = ["굴","땅콩","유제품","날생선","버섯"];
 
 const MENUS = [
-  {name:"된장찌개와 제육볶음", tags:["고기","국물"], ings:[], special:false},
-  {name:"해물파전", tags:["해산물","담백한 음식"], ings:["굴"], special:false},
-  {name:"김치찌개", tags:["국물","매운 음식"], ings:[], special:false},
-  {name:"잡채와 전", tags:["면","담백한 음식"], ings:[], special:false},
-  {name:"회덮밥", tags:["해산물"], ings:["날생선"], special:false},
-  {name:"크림파스타", tags:["면","담백한 음식"], ings:["유제품"], special:false},
-  {name:"매운 돼지갈비찜", tags:["고기","매운 음식"], ings:[], special:false},
-  {name:"버섯전골", tags:["국물","담백한 음식"], ings:["버섯"], special:false},
-  {name:"치킨과 맥주", tags:["고기"], ings:[], special:false},
-  {name:"땅콩소스 월남쌈", tags:["면","담백한 음식"], ings:["땅콩"], special:false},
-  {name:"삼겹살 구이", tags:["고기"], ings:[], special:false},
-  {name:"순두부찌개", tags:["국물","매운 음식"], ings:[], special:false},
-  {name:"오징어볶음", tags:["해산물","매운 음식"], ings:[], special:false},
-  {name:"갈비탕", tags:["고기","국물"], ings:[], special:false},
-  {name:"온 가족 외식 - 소고기 구이", tags:["고기"], ings:[], special:true},
-  {name:"일요일 특별 잡채상", tags:["면","담백한 음식"], ings:[], special:true},
+  {name:"된장찌개와 제육볶음", tags:["고기","국물"], ings:[]},
+  {name:"해물파전", tags:["해산물","담백한 음식"], ings:["굴"]},
+  {name:"김치찌개", tags:["국물","매운 음식"], ings:[]},
+  {name:"잡채와 전", tags:["면","담백한 음식"], ings:[]},
+  {name:"회덮밥", tags:["해산물"], ings:["날생선"]},
+  {name:"크림파스타", tags:["면","담백한 음식"], ings:["유제품"]},
+  {name:"매운 돼지갈비찜", tags:["고기","매운 음식"], ings:[]},
+  {name:"버섯전골", tags:["국물","담백한 음식"], ings:["버섯"]},
+  {name:"치킨과 맥주", tags:["고기"], ings:[]},
+  {name:"땅콩소스 월남쌈", tags:["면","담백한 음식"], ings:["땅콩"]},
+  {name:"삼겹살 구이", tags:["고기"], ings:[]},
+  {name:"순두부찌개", tags:["국물","매운 음식"], ings:[]},
+  {name:"오징어볶음", tags:["해산물","매운 음식"], ings:[]},
+  {name:"갈비탕", tags:["고기","국물"], ings:[]}
 ];
+const SUNDAY_SPECIAL = {name:"일요일 특별 잡채상", tags:["면","담백한 음식"], ings:[]};
 
 const CHANGE_EVENTS = [
-  {text:"재료가 떨어져서 메뉴가 바뀌었다.", type:"replace"},
-  {text:"다들 귀찮아져서 배달 음식으로 바뀌었다.", type:"delivery"},
-  {text:"아빠가 갑자기 외식을 제안했다.", type:"eatout"},
-  {text:"엄마가 네가 못 먹는 재료를 빼고 다시 준비했다.", type:"substitute"},
-  {text:"동생이 조르는 메뉴로 바뀌었다.", type:"sibling"},
-  {text:"장을 깜빡해서 메뉴가 급하게 바뀌었다.", type:"replace"},
+  {text:"재료가 떨어져서 메뉴가 바뀌었어.", type:"replace"},
+  {text:"다들 귀찮아져서 배달 시키기로 했어.", type:"delivery"},
+  {text:"네가 못 먹는 재료는 빼고 다시 준비했어.", type:"substitute"},
+  {text:"동생이 조르는 메뉴로 바뀌었어.", type:"sibling"},
+  {text:"장을 깜빡해서 메뉴가 급하게 바뀌었어.", type:"replace"}
 ];
-
-const DELIVERY_MENU = {name:"치킨 배달", tags:["고기"], ings:[], special:false};
-const EATOUT_MENU = {name:"가족 외식 - 국밥집", tags:["국물","고기"], ings:[], special:false};
+const DELIVERY_MENU = {name:"치킨 배달", tags:["고기"], ings:[]};
 
 const SCHEDULE_TYPES = [
-  {id:"friend", label:"친구와 저녁"},
-  {id:"club", label:"동아리/취미 모임"},
-  {id:"study", label:"과제/스터디"},
-  {id:"show", label:"공연/행사"},
-  {id:"rest", label:"혼자 쉬는 시간"},
+  {id:"friend", label:"친구", icon:"🍻"},
+  {id:"club",   label:"취미", icon:"🎨"},
+  {id:"study",  label:"공부", icon:"📚"},
+  {id:"show",   label:"행사", icon:"🎫"},
+  {id:"rest",   label:"혼자 쉬기", icon:"🛋️"}
 ];
 
 const IMPORTANCE = {
-  light: {label:"가벼운 약속", cost:5, reward:5},
-  normal:{label:"보통 약속", cost:10, reward:10},
-  important:{label:"중요한 약속", cost:20, reward:20},
+  normal:    {label:"보통 약속",   recharge:1},
+  important: {label:"중요한 약속", recharge:1.5}
 };
 
 const NOON_EVENTS = [
@@ -258,45 +792,128 @@ const NOON_EVENTS = [
   "동생: 오늘 메뉴 뭐야? 궁금해 죽겠네.",
   "엄마: 냉장고 청소나 할까 하는데, 오늘 간단히 먹을까?",
   "친구: 야 오늘 시간 맞나 다시 확인해줘.",
-  "아빠: 요즘 다들 바쁘네. 다음 주엔 다 같이 먹자.",
+  "아빠: 요즘 다들 바쁘네. 다음 주엔 다 같이 먹자."
 ];
 
-// 가족 불참 대사
 const ABSENT_LINES = {
   mom: ["엄마: 오늘 동창회가 있어서 늦을 것 같아.", "엄마: 오늘은 좀 쉬고 싶어서 요리 패스!"],
   dad: ["아빠: 나 오늘 회식이라 늦어.", "아빠: 운동 모임 있어서 못 먹을 듯.", "아빠: 야근이다 야근..."],
-  sib: ["동생: 나 오늘 학원 끝나고 친구 만나!", "동생: 과제 때문에 늦게 올 듯.", "동생: 나 오늘 약속 있어서 패스."],
+  sib: ["동생: 나 오늘 학원 끝나고 친구 만나!", "동생: 과제 때문에 늦게 올 듯.", "동생: 나 오늘 약속 있어서 패스."]
 };
 
-const TYPING_NAMES = {mom:"엄마", dad:"아빠", sib:"동생"};
+const TIMEOUT_LINES = [
+  "엄마: 바쁜가 보다. 먹을 거면 냉장고에 넣어둘게.",
+  "엄마: 답장 없길래 네 몫은 남겨뒀어.",
+  "아빠: 바빴나 보네. 반찬은 그대로 둘게.",
+  "동생: 읽씹인 줄 알았잖아. 밥은 남겨놨어."
+];
 
-// ----------------------- 상태 -----------------------
+const DAD_COOK_OPENERS = ["오늘 저녁 먹어?", "오늘 저녁은 아빠 담당이다.", "오늘은 내가 한번 해봤다."];
+const DAD_COOK_LINES = [
+  "카레 해놨는데 생각보다 괜찮아.",
+  "오늘은 아빠표 김치볶음밥이다.",
+  "먹을 사람 빨리 대답해.",
+  "오랜만에 아빠가 한번 만들어봤다.",
+  "맛은 보장 못 하는데 먹어볼 사람?",
+  "국은 넉넉하게 끓여놨다."
+];
+const DAD_COOK_REACT = [
+  "엄마: 아빠가 만들었으니까 나는 설거지 담당할게.",
+  "엄마: 웬일로 요리를 다 하고, 기특하네.",
+  "엄마: 오늘은 나도 손님처럼 앉아있어야겠다.",
+  "엄마: 오랜만에 부엌이 아빠 차지네.",
+  "동생: 아빠 요리 오랜만이다!",
+  "동생: 맛있으면 다음에도 해줘.",
+  "동생: 냄새는 일단 합격.",
+  "동생: 나도 좀 도와줄까 했는데 늦었다."
+];
+
+const INTERRUPTION_EVENTS = [
+  {id:"meeting", title:"갑자기 회의가 잡혔다!", delayed:"저... 먹어요!",        reaction:"엄마: 회의 중에도 답장해줘서 고마워."},
+  {id:"call",    title:"친구에게 전화가 왔다!", delayed:"네, 갈게요!",          reaction:"아빠: 전화받으면서도 답은 하네."},
+  {id:"battery", title:"휴대폰 배터리가 꺼졌다!", delayed:"방금 충전기 꽂았어요.", reaction:"동생: 배터리 0%였던 거 아니야?"},
+  {id:"subway",  title:"지하철이 터널로 들어갔다!", delayed:"지하철이라 좀 늦게 봤어요.", reaction:"엄마: 지하철에서도 신경 써줘서 고맙다."},
+  {id:"wifi",    title:"와이파이가 끊겼다!",   delayed:"와이파이가 말썽이네요.", reaction:"아빠: 우리 집 와이파이가 문제다 진짜."},
+  {id:"cat",     title:"고양이가 휴대폰을 깔고 앉았다!", delayed:"고양이 좀 치우고요...", reaction:"동생: 또 그 고양이야?"}
+];
+
+const OUTING_PLACES = ["고깃집","칼국수집","중국집","분식집","패밀리 레스토랑","동네 단골 식당"];
+const OUTING_INTRO = [
+  "아빠: 오늘 저녁은 다 같이 밖에서 먹을까?",
+  "엄마: 오랜만에 외식하자. 먹고 싶은 사람 빨리 골라봐.",
+  "동생: 나는 칼국수!"
+];
+const OUTING_REACTIONS = {
+  "고깃집": ["엄마: 오랜만에 고기 좀 굽자.", "아빠: 역시 고기가 최고지."],
+  "칼국수집": ["동생: 역시 칼국수가 진리야.", "엄마: 뜨끈한 국물이 좋다."],
+  "중국집": ["아빠: 짜장면이냐 짬뽕이냐 그것이 문제로다.", "동생: 나는 탕수육도 시킬래."],
+  "분식집": ["동생: 떡볶이 국물에 튀김 찍어먹자.", "엄마: 간단하게 먹기 딱 좋다."],
+  "패밀리 레스토랑": ["아빠: 오랜만에 분위기 좀 내볼까.", "동생: 디저트도 먹을 거야."],
+  "동네 단골 식당": ["엄마: 여기 사장님이 우리 얼굴 알아보신다니까.", "아빠: 늘 먹던 그 맛이지."]
+};
+
+const EMOJI = {
+  mom: "👩", dad: "👨", me: "🧑", sib: "🧒", friend: "📱",
+  chair: "🪑", table: "🍽️", cook: "👨‍🍳", outing: "🏮",
+  heart: "❤️", star: "⭐", spark: "✨"
+};
+const INTERRUPT_EMOJI = {
+  meeting: "💼", call: "📞", battery: "🪫", subway: "🚇", wifi: "📶", cat: "🐈"
+};
+
+const TIMER_SECONDS = 5;
+
+// ===================== 상태 =====================
 
 let state = null;
-let timerInterval = null;
+let meta = null;
 let fastMode = false;
-let typingQueueResolver = null;
+let timerHandle = null;
+let activeKeyChoices = [];
+let primaryActionBtn = null;
+let overlayCloser = null;
 
-const STORAGE_KEY = "jalmeogeoss_save_v1";
+const STORAGE_KEY = "jalmeogeoss_save_v2";
+const META_KEY = "jalmeogeoss_meta_v1";
 
 function freshState(){
   return {
-    currentDay: 0, // 0~6 (월~일)
-    playerRole: null, // "자녀 1" | "자녀 2"
+    currentDay: 0,
     preferences: { likedTags: [], dislikedTag: null, restrictedIngredient: null },
-    schedules: [], // {day, type, importance, status}
-    weeklyMenus: [], // {menu, changed, changeEvent}
-    familyHeart: 5,
-    personalPoints: 50,
-    fatigue: 0,
+    schedules: [],
+    weeklyMenus: [],
+    tableWarmth: 0,
+    personalRecharge: 0,
     mealCount: 0,
     fullFamilyMealCount: 0,
+    lateJoinCount: 0,
+    likedMealCount: 0,
+    fastAnswerCount: 0,
     choices: [],
     eventHistory: [],
+    dayLog: [],
+    weeklyCook: { cook:"mom", day:null },
+    weeklyInterruption: { enabled:false, day:null, eventId:null, triggered:false },
+    weeklyFamilyOuting: { enabled:false, day:null, outingId:null, triggered:false },
+    dayAbsentees: [],
+    dayAbsenteesComputedDay: -1,
+    dayResult: null,
+    goalBonusApplied: false,
     endingId: null,
-    phase: "title",
-    dayAbsentees: [], // computed per day
-    sundayFullMeal: false,
+    endingResult: null,
+    endingRecorded: false,
+    phase: "title"
+  };
+}
+
+function freshMeta(){
+  return {
+    completedWeeks: 0,
+    interruptionUnlocked: false,
+    seenInterruptionIds: [],
+    familyOutingUnlocked: false,
+    familyOutingSeen: false,
+    seenOutingIds: []
   };
 }
 
@@ -306,913 +923,1301 @@ function save(){
 function loadSave(){
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
+    return raw ? JSON.parse(raw) : null;
   } catch(e){ return null; }
 }
 function clearSave(){
   try { localStorage.removeItem(STORAGE_KEY); } catch(e){}
 }
+function saveMeta(){
+  try { localStorage.setItem(META_KEY, JSON.stringify(meta)); } catch(e){}
+}
+function loadMeta(){
+  try {
+    const raw = localStorage.getItem(META_KEY);
+    return raw ? Object.assign(freshMeta(), JSON.parse(raw)) : freshMeta();
+  } catch(e){ return freshMeta(); }
+}
 
-// ----------------------- 유틸 -----------------------
+// ===================== 유틸 =====================
 
-function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
-function rand(n){ return Math.floor(Math.random()*n); }
+function clampHalf(v){ return Math.max(0, Math.min(5, Math.round(v * 2) / 2)); }
+function rand(n){ return Math.floor(Math.random() * n); }
 function pick(arr){ return arr[rand(arr.length)]; }
 function shuffle(arr){
   const a = arr.slice();
-  for (let i=a.length-1;i>0;i--){
-    const j = rand(i+1);
-    [a[i],a[j]] = [a[j],a[i]];
+  for (let i = a.length - 1; i > 0; i--){
+    const j = rand(i + 1);
+    [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
 }
-
-function heartDisplay(h){
-  let full = Math.floor(h);
-  let half = h - full >= 0.5;
-  let out = "";
-  for (let i=0;i<5;i++){
-    if (i < full) out += "♥";
-    else if (i === full && half) out += "♡";
-    else out += "·";
-  }
-  return out;
+function fmtNum(v){ return Number.isInteger(v) ? String(v) : v.toFixed(1); }
+function esc(s){
+  return String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+}
+function tagLabel(tag){
+  if (!tag) return "";
+  return `<span class="food-emoji" aria-hidden="true">${TAG_ICON[tag] || ""}</span> ${esc(tag)}`;
 }
 
-// ----------------------- 렌더링 기본 -----------------------
-
+const appEl = document.getElementById("app");
+const hudEl = document.getElementById("hud");
 const screenEl = document.getElementById("screen");
-const statusEl = document.getElementById("statusbar");
 const skipBtn = document.getElementById("skipBtn");
-
-function renderStatus(){
-  if (!state || state.phase === "title" || state.phase === "intro") {
-    statusEl.innerHTML = "";
-    return;
-  }
-  const dayLabel = state.currentDay < 7 ? DAY_NAMES[state.currentDay] + "요일" : "정산";
-  statusEl.innerHTML = `
-    <span>📅 ${dayLabel}</span>
-    <span class="heart-full">가족 ${heartDisplay(state.familyHeart)}</span>
-    <span>🧡 개인 ${state.personalPoints}</span>
-    <span>🍚 식사 ${state.mealCount}/3</span>
-  `;
-}
-
-function clearScreen(){
-  screenEl.innerHTML = "";
-}
+const liveEl = document.getElementById("live");
 
 function el(tag, cls, html){
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (html !== undefined) e.innerHTML = html;
-  return e;
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (html !== undefined) node.innerHTML = html;
+  return node;
+}
+function clearScreen(){
+  screenEl.innerHTML = "";
+  screenEl.scrollTop = 0;
+  activeKeyChoices = [];
+  primaryActionBtn = null;
+}
+function announce(text){ liveEl.textContent = text; }
+
+function toast(text){
+  const t = el("div", "toast", esc(text));
+  appEl.appendChild(t);
+  setTimeout(() => t.remove(), 1400);
 }
 
-// ----------------------- 타이틀 / 인트로 -----------------------
+// ===================== 지표 미터 =====================
 
-const TITLE_ART = `
-       _       _ _ _ ___  _____   ____  __  _  _
-      | |     | | | |  _ \\|  __ \\ |  _ \\|  \\/  || |
-      [♥]   [♥]   [♥]   [♥]   [♥]
-       엄 마     아 빠     자 녀
-`;
+let meterUid = 0;
 
-function renderTitle(){
-  clearScreen();
-  const art = `
-   ┌─────────────────────────┐
-   │   (ᴗ_ᴗ)  (•‿•)  (^_^)   │
-   │   엄마    아빠   자녀    │
-   │        가족 단톡방        │
-   └─────────────────────────┘
-`;
-  const c = el("div", "card");
-  c.innerHTML = `
-    <h1>잘 먹었습니다</h1>
-    <pre class="ascii">${art}</pre>
-    <p style="text-align:center; color:#aaa; font-size:13px;">텍스트 기반 가족 단톡방 시뮬레이션 (프로토타입)</p>
-  `;
-  screenEl.appendChild(c);
+function meterCell(kind, frac){
+  const ch = kind === "heart" ? EMOJI.heart : EMOJI.star;
+  return `<span class="meter-cell" aria-hidden="true">
+    <span class="mc-empty">${ch}</span>
+    <span class="mc-fill" style="width:${(frac * 100).toFixed(1)}%">${ch}</span>
+  </span>`;
+}
 
-  const hasSave = !!loadSave();
-
-  const btn1 = el("button", "primary", "새 게임 시작");
-  btn1.onclick = () => {
-    if (hasSave){
-      if (confirm("진행 중인 게임이 있습니다. 새로 시작하면 기존 기록이 삭제됩니다. 계속할까요?")){
-        clearSave();
-        startNewGame();
-      }
-    } else {
-      startNewGame();
-    }
-  };
-  screenEl.appendChild(btn1);
-
-  if (hasSave){
-    const btn2 = el("button", "secondary", "이어서 하기");
-    btn2.onclick = () => {
-      state = loadSave();
-      fastMode = true;
-      renderStatus();
-      routePhase();
-    };
-    screenEl.appendChild(btn2);
+function meterFive(kind, value, opts){
+  const o = opts || {};
+  const name = kind === "heart" ? "식탁 온기" : "나의 충전";
+  let cells = "";
+  for (let i = 0; i < 5; i++){
+    cells += meterCell(kind, Math.max(0, Math.min(1, value - i)));
   }
+  const num = o.hideNumber ? "" : `<span class="meter-num">${fmtNum(value)}/5</span>`;
+  const maxCls = value >= 5 ? " is-max" : "";
+  return `<span class="meter${maxCls}" role="img" aria-label="${name} 5점 중 ${fmtNum(value)}점">${cells}${num}</span>`;
 }
 
-function startNewGame(){
-  state = freshState();
-  state.phase = "intro";
-  renderStatus();
-  routePhase();
+function rewardIcon(kind){
+  return `<span class="reward-mark" aria-hidden="true">${kind === "heart" ? EMOJI.heart : EMOJI.star}</span>`;
 }
 
-function renderIntro(){
-  clearScreen();
-  const c = el("div", "card");
-  c.innerHTML = `
-    <h2>게임 소개</h2>
-    <p class="result-line">4인 가족의 자녀가 되어 일주일 동안 가족 저녁 식사와 개인 일정을 조율합니다.</p>
-    <p class="result-line">매일 오후 6시, 엄마가 가족 단톡방에 "오늘 저녁 먹어?"라고 묻습니다. 제한 시간 안에 답해야 합니다.</p>
-    <p class="result-line">목표: 일주일에 <b>최소 3번</b> 가족과 저녁을 먹으면서, 자신의 생활(개인 생활 포인트)도 너무 포기하지 않기.</p>
-    <p class="small">같이 먹는 것도 중요하지만, 어떻게 말하는지도 중요합니다.</p>
+// ===================== HUD =====================
+
+function renderHud(){
+  const hidden = !state || state.phase === "title" || state.phase === "intro" || state.phase === "ending";
+  hudEl.hidden = hidden;
+  if (hidden) return;
+
+  const dayLabel = DAY_NAMES[Math.min(state.currentDay, 6)];
+  hudEl.innerHTML = `
+    <div class="day-stamp" role="img" aria-label="${dayLabel}요일">${dayLabel}</div>
+    <div class="hud-meters">
+      <div class="meter-row"><span class="meter-label" aria-hidden="true">온기</span>${meterFive("heart", state.tableWarmth)}</div>
+      <div class="meter-row"><span class="meter-label" aria-hidden="true">충전</span>${meterFive("star", state.personalRecharge)}</div>
+    </div>
+    <div class="goal-tag"><span class="hud-number">식사 ${state.mealCount}/3</span></div>
   `;
-  screenEl.appendChild(c);
-  const btn = el("button", "primary", "다음");
-  btn.onclick = () => { state.phase = "pickChild"; save(); routePhase(); };
-  screenEl.appendChild(btn);
 }
 
-// ----------------------- 자녀 선택 -----------------------
+// ===================== 메시지 재생 =====================
 
-function renderPickChild(){
-  clearScreen();
-  const c = el("div", "card");
-  c.innerHTML = `<h2>캐릭터 선택</h2><p class="small">두 자녀 중 한 명을 선택하세요. 외형 차이는 없습니다.</p>`;
-  screenEl.appendChild(c);
-
-  ["자녀 1","자녀 2"].forEach(role => {
-    const b = el("button", "choice", `<span class="num">[${role === "자녀 1" ? 1 : 2}]</span> ${role} <span class="small">( (•_•) )</span>`);
-    b.onclick = () => {
-      state.playerRole = role;
-      state.phase = "prefs";
-      save();
-      routePhase();
-    };
-    screenEl.appendChild(b);
-  });
-}
-
-// ----------------------- 음식 취향 설정 -----------------------
-
-let prefTemp = {liked:[], disliked:null, restricted:null};
-
-function renderPrefs(){
-  clearScreen();
-  prefTemp = {liked:[], disliked:null, restricted:null};
-  const c = el("div", "card");
-  c.innerHTML = `<h2>음식 취향 설정</h2><p class="small">좋아하는 음식군 2개를 선택하세요.</p>`;
-  screenEl.appendChild(c);
-
-  const likedWrap = el("div", "choice-grid");
-  FOOD_TAGS.forEach(tag => {
-    const p = el("div", "pill", tag);
-    p.onclick = () => {
-      if (prefTemp.liked.includes(tag)){
-        prefTemp.liked = prefTemp.liked.filter(t => t !== tag);
-      } else if (prefTemp.liked.length < 2) {
-        prefTemp.liked.push(tag);
-      }
-      refreshPills();
-    };
-    likedWrap.appendChild(p);
-  });
-  screenEl.appendChild(likedWrap);
-
-  const dislikeLabel = el("div", "card", `<p class="small">싫어하는 음식군 1개를 선택하세요.</p>`);
-  screenEl.appendChild(dislikeLabel);
-  const dislikeWrap = el("div", "choice-grid");
-  FOOD_TAGS.forEach(tag => {
-    const p = el("div", "pill", tag);
-    p.onclick = () => { prefTemp.disliked = tag; refreshPills(); };
-    dislikeWrap.appendChild(p);
-  });
-  screenEl.appendChild(dislikeWrap);
-
-  const restrictLabel = el("div", "card", `<p class="small">먹지 못하는 재료 1개를 선택하세요. (해당 재료 메뉴는 대체 메뉴 없이는 식사 불가)</p>`);
-  screenEl.appendChild(restrictLabel);
-  const restrictWrap = el("div", "choice-grid");
-  RESTRICT_INGS.forEach(ing => {
-    const p = el("div", "pill", ing);
-    p.onclick = () => { prefTemp.restricted = ing; refreshPills(); };
-    restrictWrap.appendChild(p);
-  });
-  screenEl.appendChild(restrictWrap);
-
-  function refreshPills(){
-    [...likedWrap.children].forEach(p => p.classList.toggle("selected", prefTemp.liked.includes(p.textContent)));
-    [...dislikeWrap.children].forEach(p => p.classList.toggle("selected", prefTemp.disliked === p.textContent));
-    [...restrictWrap.children].forEach(p => p.classList.toggle("selected", prefTemp.restricted === p.textContent));
-  }
-
-  const btn = el("button", "primary", "다음");
-  btn.onclick = () => {
-    if (prefTemp.liked.length < 2 || !prefTemp.disliked || !prefTemp.restricted){
-      alert("모든 항목을 선택해주세요.");
-      return;
-    }
-    state.preferences.likedTags = prefTemp.liked;
-    state.preferences.dislikedTag = prefTemp.disliked;
-    state.preferences.restrictedIngredient = prefTemp.restricted;
-    state.phase = "schedule";
-    save();
-    routePhase();
-  };
-  screenEl.appendChild(btn);
-}
-
-// ----------------------- 개인 일정 배치 -----------------------
-
-let scheduleTemp = [];
-
-function renderSchedule(){
-  clearScreen();
-  if (scheduleTemp.length === 0){
-    scheduleTemp = [
-      {day:null, type:null, importance:null},
-      {day:null, type:null, importance:null},
-      {day:null, type:null, importance:null},
-    ];
-  }
-  const c = el("div", "card");
-  c.innerHTML = `<h2>개인 일정 배치</h2><p class="small">일주일 중 3개의 개인 약속을 배치하세요. 1개는 '중요한 약속'으로 지정해야 합니다.</p>`;
-  screenEl.appendChild(c);
-
-  scheduleTemp.forEach((sch, idx) => {
-    const box = el("div", "card");
-    box.innerHTML = `<b>약속 ${idx+1}</b>`;
-
-    const dayRow = el("div", "choice-grid");
-    DAY_NAMES.forEach((d, di) => {
-      const p = el("div", "pill", d);
-      p.onclick = () => {
-        const already = scheduleTemp.some((s,i) => i!==idx && s.day===di);
-        if (already) { alert("이미 다른 약속이 있는 요일입니다."); return; }
-        sch.day = di;
-        renderSchedule();
-      };
-      if (sch.day === di) p.classList.add("selected");
-      dayRow.appendChild(p);
-    });
-    box.appendChild(dayRow);
-
-    const typeRow = el("div", "choice-grid");
-    SCHEDULE_TYPES.forEach(t => {
-      const p = el("div", "pill", t.label);
-      p.onclick = () => { sch.type = t.id; renderSchedule(); };
-      if (sch.type === t.id) p.classList.add("selected");
-      typeRow.appendChild(p);
-    });
-    box.appendChild(typeRow);
-
-    const impRow = el("div", "choice-grid");
-    Object.keys(IMPORTANCE).forEach(key => {
-      const p = el("div", "pill", IMPORTANCE[key].label);
-      p.onclick = () => {
-        if (key === "important"){
-          scheduleTemp.forEach((s,i) => { if (i!==idx && s.importance==="important") s.importance="normal"; });
-        }
-        sch.importance = key;
-        renderSchedule();
-      };
-      if (sch.importance === key) p.classList.add("selected");
-      impRow.appendChild(p);
-    });
-    box.appendChild(impRow);
-
-    screenEl.appendChild(box);
-  });
-
-  const btn = el("button", "primary", "다음");
-  btn.onclick = () => {
-    const complete = scheduleTemp.every(s => s.day !== null && s.type && s.importance);
-    const hasImportant = scheduleTemp.some(s => s.importance === "important");
-    if (!complete){ alert("모든 약속에 요일, 종류, 중요도를 설정하세요."); return; }
-    if (!hasImportant){ alert("1개는 '중요한 약속'으로 지정해야 합니다."); return; }
-    state.schedules = scheduleTemp.map(s => ({...s, status:"예정"}));
-    state.phase = "menuPreview";
-    buildWeeklyMenus();
-    save();
-    routePhase();
-  };
-  screenEl.appendChild(btn);
-}
-
-function buildWeeklyMenus(){
-  const pool = shuffle(MENUS.filter(m => !m.special));
-  const menus = [];
-  for (let i=0;i<7;i++){
-    menus.push(pool[i % pool.length]);
-  }
-  // 일요일 특별식
-  menus[6] = MENUS.find(m => m.name === "일요일 특별 잡채상");
-
-  const changeDays = shuffle([0,1,2,3,4,5]).slice(0,2); // 월~토 중 2일 (일요일 제외)
-  state.weeklyMenus = menus.map((m, i) => ({
-    menu: m,
-    changed: changeDays.includes(i),
-    changeEvent: null,
-  }));
-}
-
-// ----------------------- 주간 메뉴 확인 -----------------------
-
-function renderMenuPreview(){
-  clearScreen();
-  const c = el("div", "card");
-  c.innerHTML = `<h2>이번 주 예정 메뉴</h2><p class="small">7일 중 2일은 당일 사건으로 메뉴가 바뀔 수 있습니다.</p>`;
-  screenEl.appendChild(c);
-
-  const table = el("table", "menu-table");
-  let rows = `<tr><th>요일</th><th>메뉴</th><th>태그</th></tr>`;
-  state.weeklyMenus.forEach((wm, i) => {
-    const tags = wm.menu.tags.map(t => `<span class="tag ${state.preferences.dislikedTag===t ? 'off':''}">${t}</span>`).join("");
-    rows += `<tr><td>${DAY_NAMES[i]}</td><td>${wm.menu.name}${wm.changed ? ' <span class="small">(변경 가능)</span>' : ''}</td><td>${tags}</td></tr>`;
-  });
-  table.innerHTML = rows;
-  screenEl.appendChild(table);
-
-  const info = el("div", "card");
-  info.innerHTML = `
-    <p class="small">내 캐릭터: ${state.playerRole}</p>
-    <p class="small">좋아하는 음식군: ${state.preferences.likedTags.join(", ")}</p>
-    <p class="small">싫어하는 음식군: ${state.preferences.dislikedTag}</p>
-    <p class="small">못 먹는 재료: ${state.preferences.restrictedIngredient}</p>
-  `;
-  screenEl.appendChild(info);
-
-  const btn = el("button", "primary", "한 주 시작하기");
-  btn.onclick = () => {
-    state.phase = "morning";
-    state.currentDay = 0;
-    save();
-    routePhase();
-  };
-  screenEl.appendChild(btn);
-}
-
-// ----------------------- 아침 요약 -----------------------
-
-function todaySchedule(){
-  return state.schedules.find(s => s.day === state.currentDay && s.status === "예정");
-}
-
-function renderMorning(){
-  clearScreen();
-  const day = state.currentDay;
-  const wm = state.weeklyMenus[day];
-  const sch = todaySchedule();
-
-  const c = el("div", "card");
-  c.innerHTML = `
-    <h2>${DAY_NAMES[day]}요일 아침</h2>
-    <pre class="ascii">  ☀  ───────────  ☀
-  좋은 아침입니다</pre>
-    <p class="result-line">오늘 예정 메뉴: <b>${wm.menu.name}</b></p>
-    ${sch ? `<p class="result-line">오늘의 개인 약속: <b>${SCHEDULE_TYPES.find(t=>t.id===sch.type).label}</b> (${IMPORTANCE[sch.importance].label})</p>` : `<p class="result-line">오늘은 개인 약속이 없습니다.</p>`}
-    <p class="result-line">가족 식사 횟수: ${state.mealCount}/3</p>
-    <p class="result-line">가족 하트: ${heartDisplay(state.familyHeart)} / 개인 생활: ${state.personalPoints}</p>
-  `;
-  screenEl.appendChild(c);
-
-  const btn = el("button", "primary", "오늘 하루 시작");
-  btn.onclick = () => {
-    state.phase = "noon";
-    save();
-    routePhase();
-  };
-  screenEl.appendChild(btn);
-}
-
-// ----------------------- 낮 이벤트 -----------------------
-
-function renderNoon(){
-  clearScreen();
-  const c = el("div", "card");
-  c.innerHTML = `<h2>${DAY_NAMES[state.currentDay]}요일 낮</h2>`;
-  screenEl.appendChild(c);
-
-  const showEvent = Math.random() < 0.7;
-  const chatBox = el("div", "card");
-  screenEl.appendChild(chatBox);
-
-  const btn = el("button", "primary", "오후로 넘어가기");
-  btn.style.display = "none";
-  screenEl.appendChild(btn);
-
-  const lines = showEvent ? [pick(NOON_EVENTS)] : ["오늘은 낮 동안 특별한 메시지가 없었습니다."];
-  playLines(chatBox, lines.map(l => ({text:l})), () => {
-    btn.style.display = "block";
-  });
-
-  btn.onclick = () => {
-    state.phase = "chat";
-    save();
-    routePhase();
-  };
-}
-
-// ----------------------- 채팅 애니메이션 유틸 -----------------------
-
-function nameClassFor(text){
-  if (text.startsWith("엄마")) return "name-mom";
-  if (text.startsWith("아빠")) return "name-dad";
-  if (text.startsWith("동생")) return "name-sib";
-  if (text.startsWith("나")) return "name-me";
-  if (text.startsWith("친구")) return "name-friend";
-  return "";
-}
-
-function formatLine(text){
+function speakerOf(text){
   const idx = text.indexOf(":");
-  if (idx === -1) return `<span class="result-line">${text}</span>`;
+  if (idx === -1) return null;
   const name = text.slice(0, idx);
-  const rest = text.slice(idx+1);
-  return `<div class="chat-line"><span class="name ${nameClassFor(text)}">${name}</span>:${rest}</div>`;
+  const map = { "엄마":"mom", "아빠":"dad", "동생":"sib", "나":"me" };
+  return { name, key: map[name] || null, body: text.slice(idx + 1).trim() };
 }
 
-function playLines(container, lines, onDone){
+function messageNode(text){
+  const sp = speakerOf(text);
+  if (!sp) return el("p", "msg-note", esc(text));
+  const node = el("div", "msg" + (sp.key === "me" ? " from-me" : ""));
+  const face = (sp.key && EMOJI[sp.key]) || EMOJI.friend;
+  const portrait = `<span class="avatar-emoji" aria-hidden="true">${face}</span>`;
+  node.innerHTML = `${portrait}
+    <div class="msg-body">
+      <div class="msg-name">${esc(sp.name)}</div>
+      <div class="msg-strip">${esc(sp.body)}</div>
+    </div>`;
+  return node;
+}
+
+function playMessages(container, lines, onDone){
   let i = 0;
-  skipBtn.style.display = "block";
-  skipBtn.onclick = () => {
-    fastMode = true;
-    flushAll();
+  let skipped = fastMode;
+  let done = false;
+  const finish = () => {
+    if (done) return;
+    done = true;
+    skipBtn.hidden = true;
+    skipBtn.onclick = null;
+    markLatest(container);
+    if (onDone) onDone();
+  };
+  const flush = () => {
+    container.innerHTML = "";
+    lines.forEach(t => container.appendChild(messageNode(t)));
+    finish();
   };
 
-  function flushAll(){
-    container.innerHTML = lines.map(l => formatLine(l.text)).join("");
-    skipBtn.style.display = "none";
-    if (onDone) onDone();
-  }
+  if (!lines.length){ finish(); return; }
+
+  skipBtn.hidden = false;
+  skipBtn.onclick = () => { skipped = true; flush(); };
 
   function step(){
-    if (fastMode){ flushAll(); return; }
-    if (i >= lines.length){
-      skipBtn.style.display = "none";
-      if (onDone) onDone();
-      return;
-    }
-    const div = document.createElement("div");
-    div.innerHTML = formatLine(lines[i].text);
-    container.appendChild(div.firstChild);
+    if (skipped){ flush(); return; }
+    if (i >= lines.length){ finish(); return; }
+    container.appendChild(messageNode(lines[i]));
+    container.parentElement && (container.parentElement.scrollTop = container.parentElement.scrollHeight);
+    screenEl.scrollTop = screenEl.scrollHeight;
     i++;
-    setTimeout(step, 650);
+    setTimeout(step, 620);
   }
   step();
 }
 
-// ----------------------- 오후 6시 채팅 + 선택 -----------------------
+function markLatest(container){
+  const msgs = container.querySelectorAll(".msg");
+  msgs.forEach(m => m.classList.remove("is-latest"));
+  if (msgs.length) msgs[msgs.length - 1].classList.add("is-latest");
+}
 
-let chatState = null;
+// ===================== 화면: 타이틀 =====================
+
+function renderTitle(){
+  clearScreen();
+  appEl.dataset.screen = "title";
+
+  const scene = el("section", "scene");
+  scene.innerHTML = `
+    <div style="height:var(--space-6)"></div>
+    <h1 class="title-main">잘 먹었습니다!</h1>
+    <p class="sub-text center">오늘은 같이 저녁 먹을 수 있을까?</p>
+    <div class="emoji-scene" role="img" aria-label="식탁에 둘러앉은 네 식구">
+      <div class="emoji-row"><span>${EMOJI.mom}</span><span>${EMOJI.dad}</span></div>
+      <div class="emoji-table">🍚 🍲 🥢</div>
+      <div class="emoji-row"><span>${EMOJI.me}</span><span>${EMOJI.sib}</span></div>
+    </div>
+    <p class="sub-text center">일주일 동안, 오늘 저녁을 대답하는 게임</p>
+  `;
+  screenEl.appendChild(scene);
+
+  if (meta.completedWeeks > 0){
+    const stamp = el("p", "center", `<span class="stamp-note">이번이 ${meta.completedWeeks + 1}번째 일주일</span>`);
+    screenEl.appendChild(stamp);
+  }
+
+  const actions = el("div", "action-area");
+  const hasSave = !!loadSave();
+
+  const startBtn = el("button", "btn primary", "이번 주 시작하기");
+  startBtn.type = "button";
+  startBtn.onclick = () => {
+    if (hasSave && !confirm("진행 중인 한 주가 있어요. 새로 시작하면 이번 주 기록이 사라집니다. 계속할까요?")) return;
+    clearSave();
+    startNewWeek();
+  };
+  actions.appendChild(startBtn);
+  primaryActionBtn = startBtn;
+
+  if (hasSave){
+    const resume = el("button", "btn secondary", "이어서 하기");
+    resume.type = "button";
+    resume.onclick = () => {
+      state = migrate(loadSave());
+      fastMode = true;
+      route();
+    };
+    actions.appendChild(resume);
+  }
+
+  const record = el("button", "btn ghost", "기록 보기");
+  record.type = "button";
+  record.onclick = openRecordModal;
+  actions.appendChild(record);
+
+  screenEl.appendChild(actions);
+}
+
+function startNewWeek(){
+  state = freshState();
+  state.phase = "intro";
+  route();
+}
+
+function openRecordModal(){
+  const body = `
+    <h2 class="screen-title">지금까지의 기록</h2>
+    <p class="body-text">완주한 일주일 <span class="hud-number">${meta.completedWeeks}회</span></p>
+    <p class="body-text">만난 돌발 상황 <span class="hud-number">${meta.seenInterruptionIds.length}/6</span></p>
+    <p class="body-text">가본 외식 장소 <span class="hud-number">${meta.seenOutingIds.length}/6</span></p>
+    <p class="sub-text">기록은 새 게임을 시작해도 사라지지 않아요.</p>
+  `;
+  showOverlay(body, { closable:true });
+}
+
+// ===================== 화면: 소개 =====================
+
+function renderIntro(){
+  clearScreen();
+  appEl.dataset.screen = "setup";
+
+  const panel = el("section", "panel");
+  panel.innerHTML = `
+    <h2 class="screen-title">이번 주 이야기</h2>
+    <p class="body-text">성별이 정해지지 않은 자녀 '나'가 되어 한 주의 저녁을 고릅니다.</p>
+    <p class="body-text">매일 오후 6시, 가족 단톡방에 메뉴가 올라오면 <strong>5초</strong> 안에 답해야 해요.</p>
+    <p class="body-text">일주일 동안 가족과 나의 시간을 채워보세요. 가족과 세 번 저녁을 먹는 것이 이번 주의 작은 목표입니다.</p>
+    <p class="sub-text">벌점은 없습니다. 채운 것만 남습니다.</p>
+  `;
+  screenEl.appendChild(panel);
+
+  const actions = el("div", "action-area");
+  const next = el("button", "btn primary", "준비 시작하기");
+  next.type = "button";
+  next.onclick = () => { state.phase = "prefs"; save(); route(); };
+  actions.appendChild(next);
+  screenEl.appendChild(actions);
+  primaryActionBtn = next;
+}
+
+// ===================== 화면: 1단계 음식 취향 =====================
+
+let prefStep = 0;
+let prefTemp = { liked:[], disliked:null, restricted:null };
+
+function renderPrefs(){
+  clearScreen();
+  appEl.dataset.screen = "setup";
+
+  const head = el("section", "panel plain");
+  head.innerHTML = `
+    <h2 class="screen-title">나는 이런 저녁이 좋아요</h2>
+    <p class="step-count">준비 1/3 · 음식 취향</p>
+  `;
+  screenEl.appendChild(head);
+
+  const prompt = el("p", "body-text");
+  screenEl.appendChild(prompt);
+
+  const grid = el("div", "card-grid");
+  screenEl.appendChild(grid);
+
+  const actions = el("div", "action-area");
+  const nextBtn = el("button", "btn primary", "다음");
+  nextBtn.type = "button";
+  const backBtn = el("button", "btn ghost", "이전 선택 고치기");
+  backBtn.type = "button";
+  actions.appendChild(nextBtn);
+  actions.appendChild(backBtn);
+  screenEl.appendChild(actions);
+  primaryActionBtn = nextBtn;
+
+  function card(label, selected, disabled, onClick){
+    const b = el("button", "choice-card" + (selected ? " is-selected" : ""));
+    b.type = "button";
+    b.disabled = !!disabled;
+    b.setAttribute("aria-pressed", selected ? "true" : "false");
+    b.innerHTML = `<span class="scribble" aria-hidden="true"></span>
+      <span class="label">${label}</span>
+      ${selected ? '<span class="check" aria-hidden="true">✓</span>' : ""}`;
+    b.onclick = onClick;
+    if (disabled) b.style.opacity = ".45";
+    return b;
+  }
+
+  function draw(){
+    grid.innerHTML = "";
+    if (prefStep === 0){
+      prompt.textContent = "좋아하는 음식군 2개를 골라주세요.";
+      FOOD_TAGS.forEach(tag => {
+        const sel = prefTemp.liked.includes(tag);
+        grid.appendChild(card(tagLabel(tag), sel, false, () => {
+          if (sel) prefTemp.liked = prefTemp.liked.filter(t => t !== tag);
+          else if (prefTemp.liked.length < 2) prefTemp.liked.push(tag);
+          draw();
+        }));
+      });
+      nextBtn.disabled = prefTemp.liked.length !== 2;
+      backBtn.hidden = true;
+    } else if (prefStep === 1){
+      prompt.textContent = "별로 반갑지 않은 음식군 1개를 골라주세요.";
+      FOOD_TAGS.forEach(tag => {
+        const isLiked = prefTemp.liked.includes(tag);
+        const sel = prefTemp.disliked === tag;
+        grid.appendChild(card(tagLabel(tag), sel, isLiked, () => {
+          prefTemp.disliked = tag;
+          draw();
+        }));
+      });
+      nextBtn.disabled = !prefTemp.disliked;
+      backBtn.hidden = false;
+    } else {
+      prompt.textContent = "못 먹는 재료 1개를 골라주세요. 취향이 아니라 식사 제한이에요.";
+      RESTRICT_INGS.forEach(ing => {
+        const sel = prefTemp.restricted === ing;
+        grid.appendChild(card(`<span class="food-emoji" aria-hidden="true">⚠️</span> ${esc(ing)}`, sel, false, () => {
+          prefTemp.restricted = ing;
+          draw();
+        }));
+      });
+      nextBtn.disabled = !prefTemp.restricted;
+      backBtn.hidden = false;
+    }
+    nextBtn.textContent = prefStep < 2 ? "다음" : "약속 정하러 가기";
+  }
+
+  nextBtn.onclick = () => {
+    if (nextBtn.disabled) return;
+    if (prefStep < 2){ prefStep++; draw(); return; }
+    state.preferences.likedTags = prefTemp.liked.slice();
+    state.preferences.dislikedTag = prefTemp.disliked;
+    state.preferences.restrictedIngredient = prefTemp.restricted;
+    state.phase = "schedule";
+    save();
+    route();
+  };
+  backBtn.onclick = () => { if (prefStep > 0){ prefStep--; draw(); } };
+
+  draw();
+}
+
+// ===================== 화면: 2단계 개인 약속 =====================
+
+let schedTemp = [];
+let pendingType = null;
+
+function renderSchedule(){
+  clearScreen();
+  appEl.dataset.screen = "setup";
+
+  const head = el("section", "panel plain");
+  head.innerHTML = `
+    <h2 class="screen-title">이번 주 내 약속</h2>
+    <p class="step-count">준비 2/3 · 약속 <span class="hud-number">${schedTemp.length}/3</span></p>
+  `;
+  screenEl.appendChild(head);
+
+  const guide = el("p", "body-text", "약속 종류를 고르고 날짜를 탭하세요. 하나는 중요한 약속으로 지정됩니다.");
+  screenEl.appendChild(guide);
+
+  const chips = el("div", "chip-row");
+  SCHEDULE_TYPES.forEach(t => {
+    const c = el("button", "chip" + (pendingType === t.id ? " is-selected" : ""),
+      `<span class="food-emoji" aria-hidden="true">${t.icon}</span> ${esc(t.label)}`);
+    c.type = "button";
+    c.setAttribute("aria-pressed", pendingType === t.id ? "true" : "false");
+    c.onclick = () => { pendingType = (pendingType === t.id) ? null : t.id; renderSchedule(); };
+    chips.appendChild(c);
+  });
+  screenEl.appendChild(chips);
+
+  const rail = el("div", "day-rail");
+  DAY_NAMES.forEach((d, di) => {
+    const slot = schedTemp.find(s => s.day === di);
+    const card = el("button", "day-card" + (slot ? " is-filled" : ""));
+    card.type = "button";
+    const type = slot ? SCHEDULE_TYPES.find(t => t.id === slot.type) : null;
+    card.innerHTML = `
+      <span class="day-name">${d}</span>
+      ${slot
+        ? `<span class="food-emoji" aria-hidden="true">${type.icon}</span>
+           <span class="day-slot">${esc(type.label)}</span>
+           ${slot.importance === "important" ? '<span class="star" aria-hidden="true">★</span>' : ""}`
+        : `<span class="day-slot" aria-hidden="true">—</span>`}
+    `;
+    card.setAttribute("aria-label", slot
+      ? `${d}요일 ${SCHEDULE_TYPES.find(t => t.id === slot.type).label} 약속${slot.importance === "important" ? ", 중요한 약속" : ""}`
+      : `${d}요일 약속 비어 있음`);
+    card.onclick = () => {
+      if (slot) return;
+      if (!pendingType){ announce("먼저 약속 종류를 고르세요."); guide.textContent = "먼저 위에서 약속 종류를 골라주세요."; return; }
+      if (schedTemp.length >= 3) return;
+      schedTemp.push({ day: di, type: pendingType, importance: schedTemp.length === 0 ? "important" : "normal", status:"예정" });
+      pendingType = null;
+      renderSchedule();
+    };
+    if (slot){
+      const rm = el("button", "day-remove", "×");
+      rm.type = "button";
+      rm.setAttribute("aria-label", `${d}요일 약속 삭제`);
+      rm.onclick = (ev) => {
+        ev.stopPropagation();
+        schedTemp = schedTemp.filter(s => s.day !== di);
+        if (schedTemp.length && !schedTemp.some(s => s.importance === "important")) schedTemp[0].importance = "important";
+        renderSchedule();
+      };
+      card.appendChild(rm);
+    }
+    rail.appendChild(card);
+  });
+  screenEl.appendChild(rail);
+
+  if (schedTemp.length){
+    const list = el("section", "panel");
+    list.innerHTML = `<p class="sub-text">★ 표시가 중요한 약속이에요. 중요한 약속은 참석할 때 더 많이 충전됩니다.</p>` +
+      schedTemp.slice().sort((a, b) => a.day - b.day).map(s => {
+        const t = SCHEDULE_TYPES.find(x => x.id === s.type);
+        return `<p class="body-text">${DAY_NAMES[s.day]}요일 · ${esc(t.label)} ${s.importance === "important" ? "★ 중요" : ""}</p>`;
+      }).join("");
+    screenEl.appendChild(list);
+
+    const starRow = el("div", "chip-row");
+    schedTemp.slice().sort((a, b) => a.day - b.day).forEach(s => {
+      const c = el("button", "chip" + (s.importance === "important" ? " is-selected" : ""), `${DAY_NAMES[s.day]} ★ 중요로`);
+      c.type = "button";
+      c.onclick = () => {
+        schedTemp.forEach(x => { x.importance = "normal"; });
+        s.importance = "important";
+        renderSchedule();
+      };
+      starRow.appendChild(c);
+    });
+    screenEl.appendChild(starRow);
+  }
+
+  const actions = el("div", "action-area");
+  const next = el("button", "btn primary", "이번 주 메뉴 보기");
+  next.type = "button";
+  next.disabled = schedTemp.length !== 3;
+  next.onclick = () => {
+    if (next.disabled) return;
+    state.schedules = schedTemp.map(s => ({ ...s, status:"예정" }));
+    buildWeek();
+    state.phase = "menuPreview";
+    save();
+    route();
+  };
+  actions.appendChild(next);
+  screenEl.appendChild(actions);
+  primaryActionBtn = next;
+}
+
+// ===================== 주간 생성 =====================
+
+function buildWeek(){
+  const pool = shuffle(MENUS);
+  const menus = [];
+  for (let i = 0; i < 7; i++) menus.push(pool[i % pool.length]);
+  menus[6] = SUNDAY_SPECIAL;
+
+  const changeDays = shuffle([0,1,2,3,4,5]).slice(0, 2);
+  state.weeklyMenus = menus.map((m, i) => ({ menu:m, changed: changeDays.includes(i), changeEvent:null, actualMenu:null }));
+
+  state.weeklyCook = { cook:"mom", day:null };
+  if (Math.random() < 0.4) state.weeklyCook = { cook:"dad", day: rand(6) };
+
+  state.weeklyInterruption = { enabled:false, day:null, eventId:null, triggered:false };
+  if (meta.interruptionUnlocked && Math.random() < 0.3){
+    const unseen = INTERRUPTION_EVENTS.filter(e => !meta.seenInterruptionIds.includes(e.id));
+    const ev = pick(unseen.length ? unseen : INTERRUPTION_EVENTS);
+    state.weeklyInterruption = { enabled:true, day: rand(7), eventId: ev.id, triggered:false };
+  }
+
+  state.weeklyFamilyOuting = { enabled:false, day:null, outingId:null, triggered:false };
+  const weekIndex = meta.completedWeeks + 1;
+  if (meta.familyOutingUnlocked){
+    let doOuting = false;
+    if (weekIndex === 8 && !meta.familyOutingSeen) doOuting = true;
+    else if (weekIndex >= 9) doOuting = Math.random() < 0.35;
+    if (doOuting){
+      const candidates = [5, 6].filter(d => d !== state.weeklyInterruption.day);
+      const day = candidates.length ? pick(candidates) : (state.weeklyInterruption.day === 6 ? 5 : 6);
+      const unseen = OUTING_PLACES.filter(p => !meta.seenOutingIds.includes(p));
+      state.weeklyFamilyOuting = { enabled:true, day, outingId: pick(unseen.length ? unseen : OUTING_PLACES), triggered:false };
+      if (state.weeklyCook.cook === "dad" && state.weeklyCook.day === day){
+        const alt = [0,1,2,3,4].filter(x => x !== day);
+        if (alt.length) state.weeklyCook.day = pick(alt);
+        else state.weeklyCook = { cook:"mom", day:null };
+      }
+    }
+  }
+}
+
+// ===================== 화면: 3단계 주간 메뉴 =====================
+
+function renderMenuPreview(){
+  clearScreen();
+  appEl.dataset.screen = "setup";
+
+  const head = el("section", "panel plain");
+  head.innerHTML = `
+    <h2 class="screen-title">이번 주 저녁표</h2>
+    <p class="step-count">준비 3/3 · 메뉴 확인</p>
+  `;
+  screenEl.appendChild(head);
+
+  const receipt = el("section", "receipt");
+  receipt.innerHTML = state.weeklyMenus.map((wm, i) => {
+    const liked = wm.menu.tags.some(t => state.preferences.likedTags.includes(t));
+    const disliked = wm.menu.tags.includes(state.preferences.dislikedTag);
+    const restricted = wm.menu.ings.includes(state.preferences.restrictedIngredient);
+    const flags = [];
+    if (restricted) flags.push('<span class="menu-flag" title="못 먹는 재료" aria-label="못 먹는 재료 포함">▲</span>');
+    else if (liked) flags.push('<span class="menu-flag" aria-label="좋아하는 음식">♥</span>');
+    else if (disliked) flags.push('<span class="menu-flag" aria-label="싫어하는 음식">×</span>');
+    return `<div class="receipt-row">
+      <span>${DAY_NAMES[i]}요일</span>
+      <span class="food-emoji" aria-hidden="true">${TAG_ICON[wm.menu.tags[0]] || ""}</span>
+      <span class="menu-name${liked && !restricted ? " is-liked" : ""}">${esc(wm.menu.name)}</span>
+      <span>${flags.join("")}</span>
+    </div>`;
+  }).join("");
+  screenEl.appendChild(receipt);
+
+  const note = el("p", "sub-text", "메뉴는 가끔 바뀔 수 있어요.");
+  screenEl.appendChild(note);
+
+  const mine = el("section", "panel");
+  mine.innerHTML = `
+    <p class="body-text">좋아하는 음식: ${state.preferences.likedTags.map(tagLabel).join(" · ")}</p>
+    <p class="body-text">싫어하는 음식: ${tagLabel(state.preferences.dislikedTag)}</p>
+    <p class="body-text">못 먹는 재료: <span class="food-emoji" aria-hidden="true">⚠️</span> ${esc(state.preferences.restrictedIngredient)}</p>
+  `;
+  screenEl.appendChild(mine);
+
+  const actions = el("div", "action-area");
+  const go = el("button", "btn primary", "월요일 시작하기");
+  go.type = "button";
+  go.onclick = () => {
+    state.currentDay = 0;
+    state.phase = "day";
+    save();
+    toast("기록해 두었어요");
+    route();
+  };
+  actions.appendChild(go);
+  screenEl.appendChild(actions);
+  primaryActionBtn = go;
+}
+
+// ===================== 하루 계산 헬퍼 =====================
+
+function todaySchedule(){
+  return state.schedules.find(s => s.day === state.currentDay && s.status === "예정");
+}
+function cookOfDay(day){
+  return (state.weeklyCook.cook === "dad" && state.weeklyCook.day === day) ? "dad" : "mom";
+}
+function isOutingDay(day){
+  return state.weeklyFamilyOuting.enabled && state.weeklyFamilyOuting.day === day;
+}
 
 function computeAbsentees(){
-  // 하루에 NPC 0~2명 불참 (제한: 7일 중 최대 2회 "2명 불참")
   const day = state.currentDay;
   if (state.dayAbsenteesComputedDay === day) return state.dayAbsentees;
 
-  let twoAbsentDaysUsed = state.eventHistory.filter(e => e.type === "twoAbsent").length;
-  const members = ["mom","dad","sib"];
-  let count;
-  const roll = Math.random();
-  if (twoAbsentDaysUsed >= 2) {
-    count = roll < 0.5 ? 0 : 1;
+  let absentees;
+  if (isOutingDay(day)){
+    absentees = [];
+  } else if (cookOfDay(day) === "dad"){
+    absentees = shuffle(["mom","sib"]).slice(0, Math.random() < 0.6 ? 0 : 1);
   } else {
-    count = roll < 0.35 ? 0 : roll < 0.75 ? 1 : 2;
+    const twoUsed = state.eventHistory.filter(e => e.type === "twoAbsent").length;
+    const roll = Math.random();
+    let count;
+    if (twoUsed >= 2) count = roll < 0.5 ? 0 : 1;
+    else count = roll < 0.35 ? 0 : (roll < 0.75 ? 1 : 2);
+    absentees = shuffle(["mom","dad","sib"]).slice(0, count);
+    if (count === 2) state.eventHistory.push({ type:"twoAbsent", day });
   }
-  const absentees = shuffle(members).slice(0, count);
-  if (count === 2) state.eventHistory.push({type:"twoAbsent", day});
 
   state.dayAbsentees = absentees;
   state.dayAbsenteesComputedDay = day;
   return absentees;
 }
 
-function applyMenuChange(wm){
-  if (!wm.changed || wm.changeEvent) return wm.menu;
+function resolveMenu(wm){
+  const day = state.currentDay;
+  if (isOutingDay(day)){
+    return { name: state.weeklyFamilyOuting.outingId, tags:["고기"], ings:[], outing:true };
+  }
+  if (wm.actualMenu) return wm.actualMenu;
+  if (!wm.changed) return wm.menu;
   const ev = pick(CHANGE_EVENTS);
   wm.changeEvent = ev;
   if (ev.type === "delivery") return DELIVERY_MENU;
-  if (ev.type === "eatout") return EATOUT_MENU;
   if (ev.type === "substitute"){
-    const newIngs = wm.menu.ings.filter(i => i !== state.preferences.restrictedIngredient);
-    return {...wm.menu, ings: newIngs, name: wm.menu.name + " (재료 대체)"};
+    return { ...wm.menu, ings: wm.menu.ings.filter(i => i !== state.preferences.restrictedIngredient), name: wm.menu.name + " (재료 대체)" };
   }
-  // replace / sibling -> random different menu
-  const alt = pick(MENUS.filter(m => !m.special && m.name !== wm.menu.name));
-  return alt;
+  return pick(MENUS.filter(m => m.name !== wm.menu.name));
 }
 
-function renderChat(){
+// ===================== 화면: 오늘의 저녁 =====================
+
+function renderDay(){
   clearScreen();
+  appEl.dataset.screen = "day";
+
   const day = state.currentDay;
   const wm = state.weeklyMenus[day];
-  const absentees = computeAbsentees();
-  const actualMenu = applyMenuChange(wm);
-  wm.actualMenu = actualMenu;
+  const sch = todaySchedule();
+  const cook = cookOfDay(day);
+  const outing = isOutingDay(day);
 
-  const c = el("div", "card");
-  c.innerHTML = `<h2>가족 단톡방 - ${DAY_NAMES[day]} 오후 6:00</h2>`;
-  screenEl.appendChild(c);
-
-  const chatBox = el("div", "card");
-  screenEl.appendChild(chatBox);
-
-  let momLine = `엄마: 오늘 저녁 먹어?`;
-  const lines = [{text: momLine}];
-  if (wm.changeEvent){
-    lines.push({text: `엄마: (${wm.changeEvent.text})`});
+  const scene = el("section", "scene");
+  let sceneEmoji = TAG_ICON[wm.menu.tags[0]] || EMOJI.table;
+  let sceneAlt = "오늘 저녁 메뉴";
+  let highlight = false;
+  let sceneTitle = `${DAY_NAMES[day]}요일 저녁`;
+  if (outing){
+    sceneEmoji = EMOJI.outing;
+    sceneAlt = "가족 외식";
+    sceneTitle = "오늘은 다 같이 밖에서";
+    highlight = true;
+  } else if (cook === "dad"){
+    sceneEmoji = EMOJI.cook;
+    sceneAlt = "앞치마를 두르고 요리하는 아빠";
+    sceneTitle = "오늘은 아빠가 요리하는 날";
+    highlight = true;
   }
-  lines.push({text: `엄마: ${actualMenu.name} 할 건데.`});
 
-  playLines(chatBox, lines, () => {
-    startAbsenteeSequenceAndChoices(chatBox, absentees, actualMenu);
+  scene.innerHTML = `<h2 class="screen-title center">${esc(sceneTitle)}</h2>
+    <div class="scene-emoji${highlight ? " highlight" : ""}" role="img" aria-label="${esc(sceneAlt)}"><span>${sceneEmoji}</span></div>`;
+  screenEl.appendChild(scene);
+
+  const info = el("section", "panel");
+  const previewMenu = outing ? state.weeklyFamilyOuting.outingId : wm.menu.name;
+  const tagsText = outing
+    ? "가족 외식"
+    : wm.menu.tags.map(tagLabel).join(" · ");
+  info.innerHTML = `
+    <p class="body-text"><strong>${esc(previewMenu)}</strong></p>
+    <p class="sub-text">${tagsText}</p>
+    ${sch
+      ? `<p class="body-text" style="margin-top:var(--space-2)">오늘 약속: ${esc(SCHEDULE_TYPES.find(t => t.id === sch.type).label)}${sch.importance === "important" ? " ★ 중요" : ""}</p>`
+      : `<p class="body-text" style="margin-top:var(--space-2)">오늘은 약속이 없어요.</p>`}
+  `;
+  screenEl.appendChild(info);
+
+  const noonPanel = el("section", "panel");
+  const chat = el("div", "chat");
+  noonPanel.appendChild(chat);
+  screenEl.appendChild(noonPanel);
+
+  const actions = el("div", "action-area");
+  const go = el("button", "btn primary", "오후 6시로");
+  go.type = "button";
+  go.disabled = true;
+  go.onclick = () => { state.phase = "chat"; save(); route(); };
+  actions.appendChild(go);
+  screenEl.appendChild(actions);
+  primaryActionBtn = go;
+
+  const lines = outing
+    ? OUTING_INTRO.slice()
+    : (Math.random() < 0.7 ? [pick(NOON_EVENTS)] : ["오늘 낮에는 조용했습니다."]);
+
+  playMessages(chat, lines, () => {
+    go.disabled = false;
   });
 }
 
-function startAbsenteeSequenceAndChoices(chatBox, absentees, actualMenu){
-  // NPC 선답 시뮬레이션: 메시지를 순차적으로 흘리면서 동시에 선택지와 타이머를 노출
-  const choiceArea = el("div");
-  screenEl.appendChild(choiceArea);
+// ===================== 화면: 5초 응답 =====================
 
-  const timerWrap = el("div", "timer-wrap");
-  const timerBar = el("div", "timer-bar");
-  timerWrap.appendChild(timerBar);
-  const timerText = el("div", "timer-text", "남은 시간: 12초");
-  choiceArea.appendChild(timerWrap);
-  choiceArea.appendChild(timerText);
+function renderChat(){
+  clearScreen();
+  appEl.dataset.screen = "chat";
 
-  const typingDiv = el("div", "typing", "");
-  choiceArea.appendChild(typingDiv);
+  const day = state.currentDay;
+  const wm = state.weeklyMenus[day];
+  const absentees = computeAbsentees();
+  const actualMenu = resolveMenu(wm);
+  wm.actualMenu = actualMenu;
+  const cook = cookOfDay(day);
+  const cookName = cook === "dad" ? "아빠" : "엄마";
+  const outing = !!actualMenu.outing;
 
-  const choicesWrap = el("div");
-  choiceArea.appendChild(choicesWrap);
+  const head = el("section", "panel plain");
+  head.innerHTML = `<h2 class="screen-title">가족 단톡방 · 오후 6:00</h2>`;
+  screenEl.appendChild(head);
 
-  // 선택지 구성
+  const chatPanel = el("section", "panel");
+  const chat = el("div", "chat");
+  chatPanel.appendChild(chat);
+  screenEl.appendChild(chatPanel);
+
+  const lines = [];
+  if (outing){
+    lines.push(`${cookName}: 다들 준비됐지? 오늘은 밖에서 먹자.`);
+    const react = OUTING_REACTIONS[state.weeklyFamilyOuting.outingId] || [];
+    react.forEach(r => lines.push(r));
+    lines.push(`아빠: 오늘은 ${state.weeklyFamilyOuting.outingId}이야.`);
+  } else if (cook === "dad"){
+    lines.push(`아빠: ${pick(DAD_COOK_OPENERS)}`);
+    lines.push(`아빠: ${pick(DAD_COOK_LINES)}`);
+    lines.push(pick(DAD_COOK_REACT));
+    if (wm.changeEvent) lines.push(`아빠: ${wm.changeEvent.text}`);
+    lines.push(`아빠: 오늘은 ${actualMenu.name}이야.`);
+  } else {
+    lines.push("엄마: 오늘 저녁 먹어?");
+    if (wm.changeEvent) lines.push(`엄마: ${wm.changeEvent.text}`);
+    lines.push(`엄마: 오늘은 ${actualMenu.name}이야.`);
+  }
+  absentees.forEach(who => lines.push(pick(ABSENT_LINES[who])));
+
+  const timerWrap = el("section");
+  screenEl.appendChild(timerWrap);
+  const actions = el("div", "action-area");
+  screenEl.appendChild(actions);
+
+  playMessages(chat, lines, () => {
+    startAnswerPhase(chatPanel, chat, timerWrap, actions, absentees, actualMenu, cook);
+  });
+}
+
+function startAnswerPhase(chatPanel, chat, timerWrap, actions, absentees, actualMenu, cook){
+  const sch = todaySchedule();
   const restricted = state.preferences.restrictedIngredient;
-  const hasRestricted = actualMenu.ings.includes(restricted);
-  const canSubstitute = hasRestricted; // 요청 시도 가능
+  const hasRestricted = (actualMenu.ings || []).includes(restricted);
 
   const options = [];
-  options.push({key:"eat", label: hasRestricted ? "저 먹을게요 (재료 빼주실 수 있나요?)" : "저 먹어요!"});
-  const sch = todaySchedule();
-  if (sch) options.push({key:"schedule", label:"나 오늘 약속 있어."});
-  options.push({key:"late", label:"조금 늦게 먹을게."});
-  options.push({key:"ask", label:"메뉴가 뭐야?"});
+  options.push({ key:"eat", label: hasRestricted ? "저 먹을게요. 그 재료는 빼줄 수 있어요?" : "저 먹어요!" });
+  if (sch) options.push({ key:"schedule", label:"나 오늘 약속 있어." });
+  options.push({ key:"late", label:"조금 늦게 먹을게." });
+
+  timerWrap.innerHTML = `
+    <div class="timer" id="timerBox">
+      <span class="timer-label">5초 안에 답장하기</span>
+      <span class="timer-cells" id="timerCells" aria-hidden="true">
+        ${"<span class=\"timer-cell\"></span>".repeat(TIMER_SECONDS)}
+      </span>
+      <span class="timer-number" id="timerNum">5</span>
+    </div>`;
+  const timerBox = document.getElementById("timerBox");
+  const cells = Array.from(document.getElementById("timerCells").children);
+  const numEl = document.getElementById("timerNum");
 
   let answered = false;
-  let timeLeft = 12;
-  let absenteeIdx = 0;
+  const buttons = [];
 
-  function renderOptions(){
-    choicesWrap.innerHTML = "";
-    options.forEach((opt, i) => {
-      const b = el("button", "choice", `<span class="num">[${i+1}]</span> ${opt.label}`);
-      b.onclick = () => finalize(opt.key, "answered");
-      choicesWrap.appendChild(b);
-    });
-  }
-  renderOptions();
+  options.forEach((opt, i) => {
+    const b = el("button", "btn", `<span class="key" aria-hidden="true">${i + 1}</span>${esc(opt.label)}`);
+    b.type = "button";
+    b.setAttribute("aria-keyshortcuts", String(i + 1));
+    b.onclick = () => choose(opt.key, b);
+    actions.appendChild(b);
+    buttons.push(b);
+  });
+  activeKeyChoices = buttons;
 
-  function showNextAbsentee(){
-    if (absenteeIdx >= absentees.length) { typingDiv.textContent=""; return; }
-    const who = absentees[absenteeIdx];
-    typingDiv.textContent = `${TYPING_NAMES[who]}가 입력 중입니다…`;
-    setTimeout(() => {
-      if (answered) return;
-      const line = pick(ABSENT_LINES[who]);
-      const div = document.createElement("div");
-      div.innerHTML = formatLine(line);
-      chatBox.appendChild(div.firstChild);
-      typingDiv.textContent = "";
-      absenteeIdx++;
-      if (absenteeIdx < absentees.length){
-        setTimeout(showNextAbsentee, 1200);
-      }
-    }, 1400);
-  }
-  if (!fastMode) setTimeout(showNextAbsentee, 1000);
+  const startAt = Date.now();
+  announce("5초 안에 답장하세요.");
+  let urgentAnnounced = false;
 
-  timerInterval = setInterval(() => {
-    timeLeft--;
-    timerBar.style.width = (timeLeft/12*100)+"%";
-    timerText.textContent = `남은 시간: ${String(Math.max(timeLeft,0)).padStart(2,'0')}초`;
-    if (timeLeft <= 0){
-      clearInterval(timerInterval);
-      if (!answered) finalize("timeout", "timeout");
+  timerHandle = setInterval(() => {
+    const elapsed = (Date.now() - startAt) / 1000;
+    const left = Math.max(0, TIMER_SECONDS - elapsed);
+    const leftCeil = Math.ceil(left);
+    numEl.textContent = String(leftCeil);
+    cells.forEach((c, idx) => c.classList.toggle("is-empty", idx >= leftCeil));
+    if (leftCeil <= 2 && !urgentAnnounced){
+      urgentAnnounced = true;
+      timerBox.classList.add("is-urgent");
+      announce("2초 남았습니다.");
     }
-  }, 1000);
+    if (left <= 0){
+      stopTimer();
+      if (!answered) choose("timeout", null);
+    }
+  }, 100);
 
-  function finalize(choiceKey, mode){
+  function stopTimer(){
+    if (timerHandle){ clearInterval(timerHandle); timerHandle = null; }
+  }
+
+  function choose(key, btn){
     if (answered) return;
     answered = true;
-    clearInterval(timerInterval);
-    typingDiv.textContent = "";
-    choicesWrap.innerHTML = "";
-    timerWrap.remove();
-    timerText.remove();
+    stopTimer();
+    activeKeyChoices = [];
+    buttons.forEach(b => { b.disabled = true; });
+    if (btn) btn.classList.add("is-selected");
+    timerBox.classList.remove("is-urgent");
+    timerWrap.innerHTML = "";
 
-    if (choiceKey === "ask"){
-      // 메뉴 재확인 후 다시 선택
-      answered = false;
-      const div = document.createElement("div");
-      div.innerHTML = formatLine(`나: 메뉴가 뭐야?`) + formatLine(`엄마: ${actualMenu.name}이야.`);
-      chatBox.appendChild(div);
-      options.splice(options.findIndex(o=>o.key==="ask"),1);
-      renderOptions();
-      // 남은 시간 유지, 타이머 재부착
-      screenEl.appendChild(timerWrap);
-      screenEl.appendChild(timerText);
-      timerInterval = setInterval(() => {
-        timeLeft--;
-        timerBar.style.width = (timeLeft/12*100)+"%";
-        timerText.textContent = `남은 시간: ${String(Math.max(timeLeft,0)).padStart(2,'0')}초`;
-        if (timeLeft <= 0){
-          clearInterval(timerInterval);
-          if (!answered) finalize("timeout", "timeout");
-        }
-      }, 1000);
+    if (key !== "timeout"){
+      const sending = el("p", "msg-note", '보내는 중 <span class="ink-dots"><i></i><i></i><i></i></span>');
+      chat.appendChild(sending);
+      const label = options.find(o => o.key === key).label;
+      setTimeout(() => {
+        sending.remove();
+        chat.appendChild(messageNode(`나: ${label}`));
+        markLatest(chat);
+        proceed(key);
+      }, fastMode ? 60 : 420);
+    } else {
+      proceed(key);
+    }
+  }
+
+  function proceed(key){
+    const elapsed = (Date.now() - startAt) / 1000;
+    if (key !== "timeout" && elapsed <= 2) state.fastAnswerCount++;
+
+    const itr = state.weeklyInterruption;
+    if (itr.enabled && itr.day === state.currentDay && !itr.triggered){
+      itr.triggered = true;
+      const ev = INTERRUPTION_EVENTS.find(e => e.id === itr.eventId);
+      if (!meta.seenInterruptionIds.includes(ev.id)){
+        meta.seenInterruptionIds.push(ev.id);
+        saveMeta();
+      }
+      showInterruption(ev, () => finishDay(key, absentees, actualMenu, sch, hasRestricted));
       return;
     }
-
-    resolveDay(choiceKey, mode, absentees, actualMenu, sch, hasRestricted);
+    finishDay(key, absentees, actualMenu, sch, hasRestricted);
   }
 }
 
-// ----------------------- 하루 결과 산출 -----------------------
+function showInterruption(ev, onDone){
+  const face = INTERRUPT_EMOJI[ev.id] || "💬";
+  const body = `
+    <div class="event-emoji" role="img" aria-label="${esc(ev.title)}">${face}</div>
+    <h2 class="screen-title">${esc(ev.title)}</h2>
+    <p class="msg-note">메시지를 전송하는 중 <span class="ink-dots"><i></i><i></i><i></i></span></p>
+  `;
+  const card = showOverlay(body, { closable:false });
 
-function resolveDay(choiceKey, mode, absentees, actualMenu, sch, hasRestricted){
-  const before = { heart: state.familyHeart, pts: state.personalPoints, meals: state.mealCount };
-  const lines = [];
+  setTimeout(() => {
+    card.innerHTML = `
+      <div class="event-emoji" role="img" aria-label="${esc(ev.title)}">${face}</div>
+      <h2 class="screen-title">${esc(ev.title)}</h2>
+      <div class="chat" style="text-align:left">
+        ${messageNode("나: " + ev.delayed).outerHTML}
+        ${messageNode(ev.reaction).outerHTML}
+      </div>
+      <p class="sub-text" style="margin-top:var(--space-3)">선택 결과는 그대로 적용됩니다.</p>
+    `;
+    const btn = el("button", "btn primary", "계속");
+    btn.type = "button";
+    btn.style.marginTop = "var(--space-3)";
+    btn.onclick = () => { closeOverlay(); onDone(); };
+    card.appendChild(btn);
+    btn.focus();
+  }, fastMode ? 120 : 1400);
+}
+
+// ===================== 하루 결과 계산 =====================
+
+function finishDay(key, absentees, actualMenu, sch, hasRestricted){
+  const before = { warmth: state.tableWarmth, recharge: state.personalRecharge };
+  const rewards = [];
+  const notes = [];
+  const seats = { mom:"empty", dad:"empty", sib:"empty", me:"empty" };
+  const outing = !!actualMenu.outing;
+
+  ["mom","dad","sib"].forEach(m => { if (!absentees.includes(m)) seats[m] = "together"; });
+  if (outing){ seats.mom = seats.dad = seats.sib = "together"; state.weeklyFamilyOuting.triggered = true; }
+
   let ateMeal = false;
-  let attendedSchedule = false;
+  let lateJoin = false;
 
-  const absentCount = absentees.length;
-
-  if (mode === "timeout" || choiceKey === "timeout"){
-    state.familyHeart = clamp(state.familyHeart - 0.5, 0, 5);
-    lines.push("답장을 미루다 시간이 지나버렸다.");
-    lines.push("엄마: ...그래, 바쁜가 보다. 너 몫은 남겨둘게.");
-  } else if (choiceKey === "eat"){
-    if (hasRestricted){
-      // 대체 메뉴 요청 성공 처리 (간단화: 항상 성공)
-      ateMeal = true;
-      lines.push("엄마: 네가 못 먹는 재료는 빼고 줄게!");
-      lines.push("가족과 함께 저녁을 먹었다. (대체 메뉴 적용, 추가 점수 없음)");
-    } else {
-      ateMeal = true;
-      const liked = actualMenu.tags.some(t => state.preferences.likedTags.includes(t));
-      const disliked = actualMenu.tags.includes(state.preferences.dislikedTag);
-      if (liked){
-        state.personalPoints = clamp(state.personalPoints + 5, 0, 100);
-        lines.push(`좋아하는 메뉴라 더 맛있게 먹었다. (개인 생활 +5)`);
-      } else if (disliked){
-        state.personalPoints = clamp(state.personalPoints - 3, 0, 100);
-        lines.push(`썩 좋아하는 메뉴는 아니었지만 먹었다. (개인 생활 -3)`);
-      } else {
-        lines.push(`무난하게 가족과 저녁을 먹었다.`);
-      }
-      if (sch){
-        // 약속이 있었는데 식사를 선택 -> 약속 취소
-        sch.status = "취소";
-        const cost = IMPORTANCE[sch.importance].cost;
-        state.personalPoints = clamp(state.personalPoints - cost, 0, 100);
-        lines.push(`개인 약속을 취소했다. (개인 생활 -${cost})`);
-        if (absentCount >= 1){
-          state.familyHeart = clamp(state.familyHeart + 0.5, 0, 5);
-          lines.push(`약속까지 취소하고 가족과 함께해줘서 다들 고마워했다. (가족 하트 +0.5)`);
-        }
-      }
-    }
-  } else if (choiceKey === "schedule"){
-    attendedSchedule = true;
-    sch.status = "참석";
-    const reward = IMPORTANCE[sch.importance].reward;
-    state.personalPoints = clamp(state.personalPoints + reward, 0, 100);
-    lines.push(`개인 약속에 참석했다. (개인 생활 +${reward})`);
-    if (absentCount >= 2){
-      state.familyHeart = clamp(state.familyHeart - 0.5, 0, 5);
-      lines.push(`이미 두 명이나 빠진 날 너까지 빠지자 분위기가 가라앉았다. (가족 하트 -0.5)`);
-    } else {
-      lines.push(`미리 말해둔 약속이라 가족도 이해해주었다.`);
-    }
-  } else if (choiceKey === "late"){
-    ateMeal = true;
-    lines.push(`식사 후 약속에 조금 늦게 참석했다.`);
+  if (key === "timeout"){
+    notes.push("답장을 놓쳤어요.");
+    notes.push(pick(TIMEOUT_LINES));
     if (sch){
-      state.personalPoints = clamp(state.personalPoints - 5, 0, 100);
-      attendedSchedule = true;
+      sch.status = "참석";
+      const gain = IMPORTANCE[sch.importance].recharge * 0.5;
+      state.personalRecharge = clampHalf(state.personalRecharge + gain);
+      rewards.push({ kind:"star", text:`나의 충전 +${fmtNum(gain)}` });
+    }
+  } else if (key === "eat"){
+    ateMeal = true;
+    seats.me = "together";
+    state.tableWarmth = clampHalf(state.tableWarmth + 0.5);
+    rewards.push({ kind:"heart", text:"식탁 온기 +0.5" });
+    if (hasRestricted){
+      notes.push(outing ? "먹을 수 있는 메뉴로 같이 골랐어요." : "못 먹는 재료는 빼고 차려졌어요.");
+    } else if (actualMenu.tags.some(t => state.preferences.likedTags.includes(t))){
+      state.personalRecharge = clampHalf(state.personalRecharge + 0.5);
+      state.likedMealCount++;
+      rewards.push({ kind:"star", text:"좋아하는 메뉴라 나의 충전 +0.5" });
+    }
+    if (sch){
+      sch.status = "취소";
+      state.tableWarmth = clampHalf(state.tableWarmth + 0.5);
+      rewards.push({ kind:"heart", text:"약속을 미루고 함께해서 식탁 온기 +0.5" });
+    }
+  } else if (key === "schedule"){
+    sch.status = "참석";
+    const gain = IMPORTANCE[sch.importance].recharge;
+    state.personalRecharge = clampHalf(state.personalRecharge + gain);
+    rewards.push({ kind:"star", text:`나의 충전 +${fmtNum(gain)}` });
+    notes.push("오늘은 내 약속을 지켰어요.");
+  } else if (key === "late"){
+    ateMeal = true;
+    lateJoin = true;
+    seats.me = "late";
+    state.tableWarmth = clampHalf(state.tableWarmth + 0.5);
+    rewards.push({ kind:"heart", text:"식탁 온기 +0.5" });
+    if (sch){
       sch.status = "지각 참석";
-      lines.push(`늦게 도착한 만큼 눈치가 보였다. (개인 생활 -5)`);
-    } else {
-      lines.push(`가족과 저녁을 먹고 느긋하게 하루를 마쳤다.`);
+      state.personalRecharge = clampHalf(state.personalRecharge + 0.5);
+      rewards.push({ kind:"star", text:"약속에도 들러서 나의 충전 +0.5" });
     }
   }
 
   if (ateMeal){
-    state.mealCount += 1;
-    const totalAbsent = absentCount + (attendedSchedule || mode==="timeout" ? 1 : 0);
-    if (absentCount === 0 && !attendedSchedule){
-      state.fullFamilyMealCount += 1;
-      state.familyHeart = clamp(state.familyHeart + 0.5, 0, 5);
-      lines.push(`온 가족이 모두 모여 저녁을 먹었다! (가족 하트 +0.5)`);
-      if (state.currentDay === 6) state.sundayFullMeal = true;
+    state.mealCount++;
+    if (lateJoin) state.lateJoinCount++;
+    const allTogether = !lateJoin && seats.mom === "together" && seats.dad === "together" && seats.sib === "together";
+    if (allTogether){
+      state.fullFamilyMealCount++;
+      state.tableWarmth = clampHalf(state.tableWarmth + 0.5);
+      state.personalRecharge = clampHalf(state.personalRecharge + 0.5);
+      rewards.push({ kind:"heart", text:"넷이서 한 끼! 식탁 온기 +0.5" });
+      rewards.push({ kind:"star", text:"넷이서 한 끼! 나의 충전 +0.5" });
     }
   }
 
-  if (!ateMeal && (choiceKey === "schedule") && absentCount + 1 >= 3){
-    state.familyHeart = clamp(state.familyHeart - 0.5, 0, 5);
-    lines.push(`플레이어까지 세 번째 불참자가 되어 가족 하트가 줄었다. (-0.5)`);
-  }
-
-  state.choices.push({day: state.currentDay, choice: choiceKey, absentCount});
-
-  renderDayEnd(before, lines);
+  const seatCount = ["mom","dad","sib","me"].filter(k => seats[k] !== "empty").length;
+  state.choices.push({ day: state.currentDay, choice: key });
+  state.dayLog[state.currentDay] = seats.me;
+  state.dayResult = {
+    seats,
+    rewards,
+    notes,
+    outing,
+    menuName: outing ? state.weeklyFamilyOuting.outingId : actualMenu.name,
+    menuTag: outing ? null : (actualMenu.tags && actualMenu.tags[0]) || null,
+    seatCount,
+    before
+  };
+  state.phase = "result";
+  save();
+  route();
 }
 
-function renderDayEnd(before, lines){
+// ===================== 화면: 식탁 결과 =====================
+
+function seatBlock(key, name, status){
+  const stateText = status === "together" ? "함께 먹음" : (status === "late" ? "늦게 합류" : "불참");
+  const face = status === "empty" ? EMOJI.chair : EMOJI[key];
+  return `<div class="seat pos-${key} ${status === "empty" ? "is-empty" : ""} ${status === "late" ? "is-late" : ""}"
+      style="animation-delay:${["mom","dad","sib","me"].indexOf(key) * 160}ms">
+      <span class="seat-face" aria-hidden="true">${face}</span>
+      <span class="seat-name">${name}</span>
+      <span class="seat-state">${stateText}</span>
+    </div>`;
+}
+
+function renderResult(){
   clearScreen();
-  const c = el("div", "card");
-  c.innerHTML = `<h2>${DAY_NAMES[state.currentDay]}요일 저녁 결과</h2>`;
-  screenEl.appendChild(c);
+  appEl.dataset.screen = "table";
 
-  const resultBox = el("div", "card");
-  screenEl.appendChild(resultBox);
+  const r = state.dayResult;
+  if (!r){ state.phase = "day"; route(); return; }
 
-  playLines(resultBox, lines.map(l => ({text:l})), () => {
-    const summary = el("div", "card");
-    const heartDelta = state.familyHeart - before.heart;
-    const ptsDelta = state.personalPoints - before.pts;
-    summary.innerHTML = `
-      <p class="result-line">가족 하트: ${heartDisplay(before.heart)} → ${heartDisplay(state.familyHeart)}
-        <span class="${heartDelta>=0?'delta-up':'delta-down'}">(${heartDelta>=0?'+':''}${heartDelta})</span></p>
-      <p class="result-line">개인 생활: ${before.pts} → ${state.personalPoints}
-        <span class="${ptsDelta>=0?'delta-up':'delta-down'}">(${ptsDelta>=0?'+':''}${ptsDelta})</span></p>
-      <p class="result-line">누적 가족 식사: ${state.mealCount}/3</p>
-    `;
-    screenEl.appendChild(summary);
+  const title = el("h2", "screen-title center");
+  title.tabIndex = -1;
+  title.id = "resultTitle";
+  const people = r.seatCount;
+  title.textContent = people === 4
+    ? "오늘은 넷이 함께 먹었습니다."
+    : (r.seats.me === "empty"
+        ? `오늘은 가족끼리 ${people}명이 먹었습니다.`
+        : `오늘은 ${people}명이 함께 먹었습니다.`);
+  screenEl.appendChild(title);
 
-    const btn = el("button", "primary", state.currentDay < 6 ? "다음 날로" : "일요일 정산 보기");
-    btn.onclick = () => {
-      if (state.currentDay < 6){
-        state.currentDay += 1;
-        state.phase = "morning";
-      } else {
-        state.phase = "summary";
-      }
-      save();
-      routePhase();
-    };
-    screenEl.appendChild(btn);
-  });
+  const wrap = el("section", "table-wrap");
+  const allTogether = ["mom","dad","sib","me"].every(k => r.seats[k] === "together");
+  const dishEmoji = r.outing ? EMOJI.outing : (TAG_ICON[r.menuTag] || EMOJI.table);
+  const sparks = [1,2,3,4].map(i => `<span class="spark s${i}" aria-hidden="true">${EMOJI.spark}</span>`).join("");
+  wrap.innerHTML = `
+    <div class="table-layout">
+      ${seatBlock("mom","엄마", r.seats.mom)}
+      ${seatBlock("dad","아빠", r.seats.dad)}
+      <div class="table-top">
+        <span class="table-dish" aria-hidden="true">${dishEmoji}</span>
+        <span class="receipt-tag">${r.outing ? "가족 외식<br>" : ""}${esc(r.menuName)}</span>
+      </div>
+      ${seatBlock("sib","동생", r.seats.sib)}
+      ${seatBlock("me","나", r.seats.me)}
+      ${allTogether ? sparks : ""}
+    </div>`;
+  screenEl.appendChild(wrap);
+
+  const card = el("section", "panel");
+  const noteHtml = r.notes.map(n => {
+    const sp = speakerOf(n);
+    return sp ? `<p class="body-text">${esc(sp.name)}: ${esc(sp.body)}</p>` : `<p class="body-text">${esc(n)}</p>`;
+  }).join("");
+  const rewardHtml = r.rewards.length
+    ? r.rewards.map(x => `<p class="reward-line">${rewardIcon(x.kind)} ${esc(x.text)}</p>`).join("")
+    : `<p class="body-text">오늘은 새로 채워진 칸이 없어요.</p>`;
+  card.innerHTML = `${noteHtml}${rewardHtml}
+    <p class="sub-text" style="margin-top:var(--space-2)">가족 식사 <span class="hud-number">${state.mealCount}/3</span></p>`;
+  screenEl.appendChild(card);
+
+  const actions = el("div", "action-area");
+  const next = el("button", "btn primary", state.currentDay < 6 ? "다음 날" : "일주일 돌아보기");
+  next.type = "button";
+  next.onclick = () => {
+    if (state.currentDay < 6){
+      state.currentDay++;
+      state.dayResult = null;
+      state.phase = "day";
+    } else {
+      state.phase = "ending";
+    }
+    save();
+    route();
+  };
+  actions.appendChild(next);
+  screenEl.appendChild(actions);
+  primaryActionBtn = next;
+
+  title.focus();
 }
 
-// ----------------------- 주간 정산 -----------------------
+// ===================== 결산과 엔딩 =====================
+
+function applyGoalBonus(){
+  if (!state.goalBonusApplied && state.mealCount >= 3){
+    state.tableWarmth = clampHalf(state.tableWarmth + 0.5);
+    state.goalBonusApplied = true;
+  }
+}
 
 function computeEnding(){
-  const { mealCount, familyHeart, personalPoints, fullFamilyMealCount, sundayFullMeal } = state;
-  const cancelledCount = state.schedules.filter(s => s.status === "취소").length;
-  const attendedCount = state.schedules.filter(s => s.status === "참석" || s.status === "지각 참석").length;
+  applyGoalBonus();
+  const w = state.tableWarmth;
+  const r = state.personalRecharge;
+  const cancelled = state.schedules.filter(s => s.status === "취소").length;
+  const attended = state.schedules.filter(s => s.status === "참석" || s.status === "지각 참석").length;
 
-  let mainEnding;
-  if (mealCount >= 3 && familyHeart >= 3.5 && personalPoints >= 40){
-    mainEnding = {
-      id: "good",
-      title: "잘 먹었습니다",
-      desc: "가족과 개인 생활의 균형을 잘 맞춘 한 주였다. 식탁에서도, 삶에서도 너무 치우치지 않았다."
-    };
-  } else if (mealCount >= 7 && personalPoints < 30){
-    mainEnding = {
-      id: "perfect",
-      title: "개근상",
-      desc: "일주일 내내 가족 식사에 빠짐없이 참석했다. 하지만 그만큼 네 자신의 일정은 거의 남지 않았다."
-    };
-  } else if (attendedCount >= 3 && mealCount <= 2){
-    mainEnding = {
-      id: "schedule_pro",
-      title: "프로 약속러",
-      desc: "개인 약속은 모두 지켰다. 하지만 가족과 식탁에 둘러앉은 기억은 많지 않다."
-    };
-  } else if (mealCount < 3 && familyHeart <= 2.5){
-    mainEnding = {
-      id: "tomorrow",
-      title: "엄마, 내일은 꼭 먹을게",
-      desc: "이번 주는 아쉽게 지나갔다. 하지만 엄마는 다음 기회를 기다리고 있다."
-    };
+  let ending;
+  if (w >= 5 && r >= 3){
+    ending = { id:"warmed", title:"사랑이 채워진 식탁",
+      lines:["일주일 동안 식탁에는 음식만 놓인 것이 아니었다.", "짧은 대답과 기다림, 함께한 시간이 빈자리를 채웠다."] };
+  } else if (w >= 3 && r >= 3){
+    ending = { id:"good", title:"잘 먹었습니다",
+      lines:["가족과 나의 시간을 모두 놓치지 않은 한 주였다.", "다음 주에도 이 정도면 충분하다."] };
+  } else if (w >= 4 && r < 3){
+    ending = { id:"regular", title:"식탁의 단골",
+      lines:["식탁은 따뜻하게 채웠지만 미뤄둔 약속도 조금 남았다.", "다음 주에는 나를 위한 저녁도 필요할지 모른다."] };
+  } else if (w < 3 && r >= 4){
+    ending = { id:"myweek", title:"나를 위한 한 주",
+      lines:["이번 주에는 지켜야 할 약속이 많았다.", "일요일 밤, 냉장고에는 가족이 남겨둔 반찬이 있었다."] };
   } else {
-    mainEnding = {
-      id: "normal",
-      title: "그럭저럭 한 주",
-      desc: "완벽하지는 않았지만, 나름의 방식으로 한 주를 보냈다."
-    };
+    ending = { id:"leftseat", title:"아직 남은 한 자리",
+      lines:["이번 주에는 모두의 시간이 좀처럼 맞지 않았다.", "그래도 식탁의 자리는 다음 주에도 그대로 남아 있다."] };
   }
 
-  const bonus = sundayFullMeal ? {
-    title: "넷이서 한 끼",
-    desc: "일요일, 드디어 네 가족이 모두 한 식탁에 모였다."
-  } : null;
+  const patterns = [];
+  if (state.fullFamilyMealCount >= 1) patterns.push("넷이서 한 끼");
+  if (state.lateJoinCount >= 2) patterns.push("늘 조금 늦게 도착한 자리");
+  if (state.likedMealCount >= 2) patterns.push("좋아하는 냄새를 따라온 한 주");
+  if (cancelled === 0 && attended >= 2) patterns.push("약속을 잘 지킨 한 주");
+  if (state.fastAnswerCount >= 4) patterns.push("이번 주의 빠른 답장왕");
+  if (state.mealCount >= 3) patterns.push("이번 주의 식사 약속 완료");
 
-  return { mainEnding, bonus, cancelledCount, attendedCount };
-}
-
-function renderSummary(){
-  clearScreen();
-  const result = computeEnding();
-  state.endingId = result.mainEnding.id;
-
-  const c = el("div", "card");
-  c.innerHTML = `
-    <h2>일요일 밤 - 주간 정산</h2>
-    <pre class="ascii">   ✦ 한 주가 끝났습니다 ✦</pre>
-    <p class="result-line">가족과 식사한 횟수: ${state.mealCount}회</p>
-    <p class="result-line">네 식구 모두 모인 횟수: ${state.fullFamilyMealCount}회</p>
-    <p class="result-line">지킨 개인 약속: ${result.attendedCount}개</p>
-    <p class="result-line">취소한 개인 약속: ${result.cancelledCount}개</p>
-    <p class="result-line">최종 가족 하트: ${heartDisplay(state.familyHeart)}</p>
-    <p class="result-line">최종 개인 생활 포인트: ${state.personalPoints}</p>
-  `;
-  screenEl.appendChild(c);
-
-  const btn = el("button", "primary", "엔딩 보기");
-  btn.onclick = () => {
-    state.phase = "ending";
-    state.endingResult = result;
-    save();
-    routePhase();
+  return {
+    ending,
+    pattern: patterns.length ? patterns[0] : "조용히 지나간 한 주",
+    cancelled,
+    attended,
+    outingNote: state.weeklyFamilyOuting.triggered && !meta.familyOutingSeen ? "오랜만의 가족 외식" : null
   };
-  screenEl.appendChild(btn);
 }
-
-// ----------------------- 엔딩 -----------------------
 
 function renderEnding(){
   clearScreen();
+  appEl.dataset.screen = "ending";
+
   const result = state.endingResult || computeEnding();
+  state.endingResult = result;
+  state.endingId = result.ending.id;
 
-  const art = `
-     ┌──────────────┐
-     │   (｡•́‿•̀｡)    │
-     │  잘 먹었습니다  │
-     └──────────────┘
-`;
+  if (!state.endingRecorded){
+    state.endingRecorded = true;
+    meta.completedWeeks++;
+    if (meta.completedWeeks >= 3) meta.interruptionUnlocked = true;
+    if (meta.completedWeeks >= 7) meta.familyOutingUnlocked = true;
+    if (state.weeklyFamilyOuting.triggered){
+      meta.familyOutingSeen = true;
+      const place = state.weeklyFamilyOuting.outingId;
+      if (place && !meta.seenOutingIds.includes(place)) meta.seenOutingIds.push(place);
+    }
+    saveMeta();
+    save();
+  }
 
-  const c = el("div", "card");
-  c.innerHTML = `
-    <h1>엔딩: ${result.mainEnding.title}</h1>
-    <pre class="ascii">${art}</pre>
-    <p class="result-line">${result.mainEnding.desc}</p>
-    ${result.bonus ? `<div class="card"><h3>+ ${result.bonus.title}</h3><p class="result-line">${result.bonus.desc}</p></div>` : ""}
-    <p class="small" style="margin-top:16px;">같이 먹는 것도 중요하지만, 어떻게 말하는지도 중요하다.</p>
+  const head = el("section", "panel plain");
+  head.innerHTML = `<h1 class="screen-title center" id="endTitle" tabindex="-1">${esc(result.ending.title)}</h1>`;
+  screenEl.appendChild(head);
+
+  const plates = el("section", "plates");
+  plates.innerHTML = DAY_NAMES.map((d, i) => {
+    const st = state.dayLog[i];
+    const mark = st === "together" ? "●" : (st === "late" ? "◐" : "○");
+    const label = st === "together" ? "함께 먹음" : (st === "late" ? "늦게 합류" : "불참");
+    return `<div class="plate-col">
+      <div class="plate" role="img" aria-label="${d}요일 ${label}">${mark}</div>
+      <span class="plate-day">${d}</span>
+    </div>`;
+  }).join("");
+  screenEl.appendChild(plates);
+
+  const meters = el("section", "panel");
+  meters.innerHTML = `
+    <div class="meter-row" style="margin-bottom:var(--space-2)">
+      <span class="meter-label" aria-hidden="true">온기</span>${meterFive("heart", state.tableWarmth)}
+    </div>
+    <div class="meter-row">
+      <span class="meter-label" aria-hidden="true">충전</span>${meterFive("star", state.personalRecharge)}
+    </div>
+    <p class="sub-text" style="margin-top:var(--space-3)">
+      가족과 식사 <span class="hud-number">${state.mealCount}회</span> ·
+      넷이서 <span class="hud-number">${state.fullFamilyMealCount}회</span> ·
+      늦게 합류 <span class="hud-number">${state.lateJoinCount}회</span><br>
+      지킨 약속 <span class="hud-number">${result.attended}개</span> ·
+      미룬 약속 <span class="hud-number">${result.cancelled}개</span>
+    </p>
   `;
-  screenEl.appendChild(c);
+  screenEl.appendChild(meters);
 
-  const btn = el("button", "primary", "다시 하기");
-  btn.onclick = () => {
+  const story = el("section", "panel plain");
+  story.innerHTML = `
+    <p class="ending-lines">${result.ending.lines.map(esc).join("<br>")}</p>
+    <p class="center" style="margin-top:var(--space-3)"><span class="stamp-note">${esc(result.pattern)}</span></p>
+    ${result.outingNote ? `<p class="center" style="margin-top:var(--space-2)"><span class="stamp-note">${esc(result.outingNote)}</span></p>` : ""}
+  `;
+  screenEl.appendChild(story);
+
+  const actions = el("div", "action-area");
+  const again = el("button", "btn primary", "다음 주도 시작하기");
+  again.type = "button";
+  again.onclick = () => {
     clearSave();
     fastMode = false;
+    prefStep = 0;
+    prefTemp = { liked:[], disliked:null, restricted:null };
+    schedTemp = [];
+    pendingType = null;
     state = freshState();
-    state.phase = "title";
-    routePhase();
+    route();
   };
-  screenEl.appendChild(btn);
+  actions.appendChild(again);
+
+  const record = el("button", "btn ghost", "기록 보기");
+  record.type = "button";
+  record.onclick = openRecordModal;
+  actions.appendChild(record);
+
+  screenEl.appendChild(actions);
+  primaryActionBtn = again;
+
+  document.getElementById("endTitle").focus();
 }
 
-// ----------------------- 라우터 -----------------------
+// ===================== 오버레이 =====================
 
-function routePhase(){
-  renderStatus();
+function showOverlay(html, opts){
+  closeOverlay();
+  const o = opts || {};
+  const layer = el("div", "overlay");
+  layer.id = "overlayLayer";
+  const card = el("div", "overlay-card", html);
+  layer.appendChild(card);
+  if (o.closable){
+    const close = el("button", "overlay-close", "×");
+    close.type = "button";
+    close.setAttribute("aria-label", "닫기");
+    close.onclick = closeOverlay;
+    card.appendChild(close);
+    overlayCloser = closeOverlay;
+    setTimeout(() => close.focus(), 0);
+  } else {
+    overlayCloser = null;
+  }
+  appEl.appendChild(layer);
+  return card;
+}
+function closeOverlay(){
+  const layer = document.getElementById("overlayLayer");
+  if (layer) layer.remove();
+  overlayCloser = null;
+}
+
+// ===================== 라우터 =====================
+
+function migrate(s){
+  if (!s) return freshState();
+  const fresh = freshState();
+  const merged = Object.assign(fresh, s);
+  if (merged.phase === "morning" || merged.phase === "noon") merged.phase = "day";
+  if (merged.phase === "summary") merged.phase = "ending";
+  if (!Array.isArray(merged.dayLog)) merged.dayLog = [];
+  return merged;
+}
+
+function route(){
+  if (timerHandle){ clearInterval(timerHandle); timerHandle = null; }
+  closeOverlay();
+  skipBtn.hidden = true;
+  renderHud();
+
   if (!state){ renderTitle(); return; }
-  switch(state.phase){
+  switch (state.phase){
     case "title": renderTitle(); break;
     case "intro": renderIntro(); break;
-    case "pickChild": renderPickChild(); break;
     case "prefs": renderPrefs(); break;
     case "schedule": renderSchedule(); break;
     case "menuPreview": renderMenuPreview(); break;
-    case "morning": renderMorning(); break;
-    case "noon": renderNoon(); break;
+    case "day": renderDay(); break;
     case "chat": renderChat(); break;
-    case "summary": renderSummary(); break;
+    case "result": renderResult(); break;
     case "ending": renderEnding(); break;
     default: renderTitle();
   }
+  renderHud();
+  fastMode = false;
 }
 
-// ----------------------- 시작 -----------------------
-renderTitle();
+// ===================== 키보드 =====================
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape"){
+    if (overlayCloser) { overlayCloser(); e.preventDefault(); }
+    return;
+  }
+  if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+
+  if (activeKeyChoices.length && /^[1-4]$/.test(e.key)){
+    const idx = Number(e.key) - 1;
+    const btn = activeKeyChoices[idx];
+    if (btn && !btn.disabled){ btn.click(); e.preventDefault(); }
+    return;
+  }
+  if (e.key === "Enter" && !activeKeyChoices.length){
+    if (document.activeElement && document.activeElement.tagName === "BUTTON") return;
+    if (primaryActionBtn && !primaryActionBtn.disabled){ primaryActionBtn.click(); e.preventDefault(); }
+  }
+});
+
+// ===================== 시작 =====================
+
+meta = loadMeta();
+state = null;
+route();
 
 })();
 </script>

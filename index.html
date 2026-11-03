@@ -6,10 +6,16 @@
 <title>잘 먹었습니다!</title>
 <style>
 @font-face {
-  font-family: "DosGothic";
-  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/DOSGothic.woff") format("woff");
-  font-weight: 400;
-  font-style: normal;
+  font-family: "GangwonEducationModuche";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2201-2@1.0/GangwonEdu_OTFLightA.woff") format("woff");
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GangwonEducationModuche";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2201-2@1.0/GangwonEdu_OTFBoldA.woff") format("woff");
+  font-weight: 700;
   font-display: swap;
 }
 
@@ -38,9 +44,9 @@
   --space-6: 24px;
   --space-8: 32px;
 
-  --font-display: "DosGothic", "Courier New", monospace;
-  --font-body: "DosGothic", "Courier New", monospace;
-  --font-number: "DosGothic", "Courier New", monospace;
+  --font-display: "GangwonEducationModuche", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-body: "GangwonEducationModuche", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-number: "GangwonEducationModuche", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
 
   --text-xs: 12px;
   --text-sm: 13px;
@@ -59,7 +65,11 @@ html, body { height: 100%; }
 
 html, body, button, input, select, textarea {
   font-family: var(--font-body);
-  font-weight: 400;
+  font-weight: 300;
+}
+.screen-title, .chat-title, .title-main, .btn.primary, .timer-number,
+.stat-value, .hud-number, .choice-num, .plate, strong {
+  font-weight: 700;
 }
 
 body {
@@ -128,38 +138,41 @@ body {
 .top-hud[hidden] { display: none; }
 .day-stamp {
   flex: none;
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
+  padding: 5px 10px;
   border: var(--line);
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   background: var(--paper-strong);
-  font-size: var(--text-md);
-  transform: rotate(-1.5deg);
+  font-size: var(--text-sm);
+  white-space: nowrap;
 }
+.hud-div { flex: none; width: 1px; height: 30px; background: var(--line-faint); }
+.hud-gauge { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.hud-gauge-label { font-size: var(--text-xs); line-height: 1; }
+.cell-meter { display: flex; gap: 3px; }
+.cell {
+  position: relative;
+  width: 13px;
+  height: 13px;
+  flex: none;
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  background: var(--paper-strong);
+  overflow: hidden;
+}
+.cell-fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--yellow); }
 .hud-meters { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .meter-row { display: flex; align-items: center; gap: var(--space-1); }
 .meter-label { font-size: var(--text-xs); color: var(--ink-soft); width: 28px; flex: none; }
+@media (max-width: 374px) {
+  .top-hud { gap: var(--space-2); padding-left: var(--space-3); padding-right: var(--space-3); }
+  .cell { width: 11px; height: 11px; }
+  .cell-meter { gap: 2px; }
+  .day-stamp, .goal-tag { padding: 4px 7px; }
+}
 .meter { display: inline-flex; align-items: center; gap: 2px; border-radius: var(--radius-sm); }
 .meter.is-max { box-shadow: 0 0 0 2px var(--yellow); }
-.meter-cell {
-  position: relative;
-  display: inline-block;
-  width: 16px;
-  height: 17px;
-  font-size: 14px;
-  line-height: 17px;
-  text-align: left;
-}
-.meter-cell .mc-empty { display: block; filter: grayscale(1); opacity: .32; }
-.meter-cell .mc-fill {
-  position: absolute;
-  left: 0; top: 0;
-  height: 100%;
-  overflow: hidden;
-  white-space: nowrap;
-}
+.meter-cell { display: block; width: 16px; height: 16px; }
+.meter-cell.lg { width: 30px; height: 30px; }
 .meter-num, .hud-number, .timer-number {
   font-family: var(--font-number);
   font-variant-numeric: tabular-nums;
@@ -167,10 +180,10 @@ body {
 .meter-num { font-size: var(--text-xs); color: var(--ink-soft); margin-left: var(--space-1); }
 .goal-tag {
   flex: none;
-  font-size: var(--text-xs);
-  border: 1px solid var(--ink);
-  border-radius: var(--radius-sm);
-  padding: 2px 6px;
+  font-size: var(--text-sm);
+  border: var(--line);
+  border-radius: 8px;
+  padding: 5px 10px;
   background: var(--paper-strong);
   white-space: nowrap;
 }
@@ -200,46 +213,126 @@ h1, h2, h3 { margin: 0; font-weight: 400; }
 .panel.plain { border: none; background: transparent; padding: 0; }
 .panel + .panel { margin-top: var(--space-3); }
 
-/* ---------- Scene (이모지) ---------- */
-.scene { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); }
-.scene-caption { font-size: var(--text-sm); color: var(--ink-soft); text-align: center; }
-
-.emoji-scene {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-4) 0;
-  user-select: none;
+/* ---------- UI v2 에셋 ---------- */
+.ui-icon {
+  display: inline-block;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  background-image: url("assets/thanksmeal/ui-v2/core-ui-icons.png");
+  background-size: 400% 300%;
+  background-repeat: no-repeat;
+  mix-blend-mode: multiply;
+  vertical-align: middle;
 }
-.emoji-row { display: flex; gap: var(--space-6); font-size: 40px; line-height: 1; }
-.emoji-table {
+.ui-icon.heart    { background-position: 0% 0%; }
+.ui-icon.star     { background-position: 33.333% 0%; }
+.ui-icon.clock    { background-position: 66.667% 0%; }
+.ui-icon.bowl     { background-position: 100% 0%; }
+.ui-icon.pot      { background-position: 0% 50%; }
+.ui-icon.chair    { background-position: 33.333% 50%; }
+.ui-icon.calendar { background-position: 66.667% 50%; }
+.ui-icon.phone    { background-position: 100% 50%; }
+.ui-icon.bubble   { background-position: 0% 100%; }
+.ui-icon.cutlery  { background-position: 33.333% 100%; }
+.ui-icon.shop     { background-position: 66.667% 100%; }
+.ui-icon.sparkle  { background-position: 100% 100%; }
+.ui-icon.sm { width: 16px; height: 16px; }
+.ui-icon.lg { width: 30px; height: 30px; }
+.ui-icon.xl { width: 84px; height: 84px; }
+
+.family-avatar {
+  display: block;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.family-avatar--large { width: 64px; height: 64px; }
+
+.title-brand { width: 100%; }
+.title-logo {
+  display: block;
+  width: 82%;
+  height: auto;
+  margin: 0 auto;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.start-decoration {
+  display: block;
+  width: 58%;
+  height: auto;
+  margin: 16px auto 0;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.face-row {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.face-col { display: flex; flex-direction: column; align-items: center; gap: var(--space-1); }
+.face-col .name { font-size: var(--text-sm); }
+.face-box {
   display: grid;
   place-items: center;
-  min-width: 190px;
-  padding: var(--space-3) var(--space-5);
   border: var(--line);
   border-radius: var(--radius-md);
   background: var(--paper-strong);
-  font-size: 40px;
-  line-height: 1;
+  padding: 2px;
 }
 
-.scene-emoji {
+/* ---------- 시작 화면 ---------- */
+.title-scene {
+  flex: 1;
+  justify-content: space-evenly;
+  gap: var(--space-3);
+  padding: var(--space-2) 0 0;
+}
+.title-scene .face-row { gap: var(--space-2); }
+.title-scene .face-box { width: 58px; height: 58px; }
+.title-scene .face-box .family-avatar { width: 50px; height: 50px; }
+.title-scene .face-col .name { font-size: var(--text-md); }
+.title-question { font-size: var(--text-lg); text-align: center; }
+.btn.hero {
+  font-size: var(--text-xl);
+  line-height: 1.2;
+  padding: 16px var(--space-4);
+  min-height: 66px;
+  border-radius: 10px;
+}
+.title-caption { font-size: var(--text-sm); text-align: center; color: var(--ink); }
+@media (max-width: 360px) {
+  .title-scene .face-box { width: 52px; height: 52px; }
+  .title-scene .face-box .family-avatar { width: 44px; height: 44px; }
+  .btn.hero { font-size: var(--text-lg); min-height: 58px; }
+}
+
+/* ---------- Scene ---------- */
+.scene { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); }
+.scene.fill { flex: 1; justify-content: center; }
+.scene-caption { font-size: var(--text-sm); color: var(--ink-soft); text-align: center; }
+.scene-art {
   position: relative;
   display: inline-grid;
   place-items: center;
-  font-size: 76px;
-  line-height: 1;
   margin: var(--space-4) 0;
-  user-select: none;
 }
-.scene-emoji > span { position: relative; z-index: 1; }
-.scene-emoji.highlight::before {
+.scene-art > .ui-icon { position: relative; z-index: 1; }
+.scene-art.highlight::before {
   content: "";
   position: absolute;
-  width: 104px;
-  height: 104px;
+  width: 112px;
+  height: 112px;
   background: var(--yellow-soft);
   border-radius: 50%;
   transform: rotate(-3deg);
@@ -315,28 +408,46 @@ h1, h2, h3 { margin: 0; font-weight: 400; }
 .tool-btn[hidden] { display: none; }
 
 /* ---------- Chat ---------- */
+.chat-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--line-faint);
+}
+.chat-title { font-size: var(--text-xl); line-height: 1.3; text-align: center; }
+.face-row.roster { gap: var(--space-2); }
+.face-row.roster .face-box { width: 54px; height: 54px; }
+.face-row.roster .face-box .family-avatar { width: 46px; height: 46px; }
+@media (max-width: 360px) {
+  .face-row.roster .face-box { width: 46px; height: 46px; }
+  .face-row.roster .face-box .family-avatar { width: 40px; height: 40px; }
+}
+.answer-wrap { margin-top: auto; padding-top: var(--space-3); }
 .chat { display: flex; flex-direction: column; gap: var(--space-3); }
 .msg { display: flex; gap: var(--space-2); align-items: flex-start; animation: msgIn 140ms var(--ease-paper) both; }
 @keyframes msgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.avatar-emoji {
+.msg-face {
   flex: none;
-  width: 40px;
-  height: 40px;
   display: grid;
   place-items: center;
+  width: 46px;
+  height: 46px;
   border: var(--line);
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   background: var(--paper-strong);
-  font-size: 21px;
-  line-height: 1;
-  user-select: none;
+  overflow: hidden;
 }
+.msg-face .family-avatar { width: 40px; height: 40px; }
 .msg-body { flex: 1; min-width: 0; }
 .msg-name { font-size: var(--text-sm); color: var(--ink-soft); margin-bottom: 2px; }
+.msg-line { display: flex; align-items: flex-end; gap: var(--space-2); }
+.msg-time { flex: none; font-size: var(--text-xs); color: var(--ink-soft); padding-bottom: 2px; }
+.msg.from-me .msg-line { flex-direction: row-reverse; }
 .msg-strip {
   position: relative;
   border: var(--line);
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   background: var(--paper-strong);
   padding: var(--space-2) var(--space-3);
   font-size: var(--text-md);
@@ -376,24 +487,54 @@ h1, h2, h3 { margin: 0; font-weight: 400; }
 .ink-dots i:nth-child(3) { animation-delay: 240ms; }
 @keyframes dot { 0%, 100% { opacity: .25; } 40% { opacity: 1; } }
 
-/* ---------- Timer ---------- */
+/* ---------- Timer + 선택지 패널 ---------- */
+.answer-panel {
+  border: var(--line-heavy);
+  border-radius: 12px;
+  background: var(--paper-strong);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
 .timer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-  border: var(--line);
-  border-radius: var(--radius-md);
-  background: var(--paper-strong);
-  padding: var(--space-2) var(--space-3);
+  gap: var(--space-3);
 }
+.timer-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
 .timer-label { font-size: var(--text-sm); }
 .timer-cells { display: flex; gap: var(--space-1); }
-.timer-cell { width: 14px; height: 14px; border: 2px solid var(--ink); background: var(--yellow); }
+.timer-cell {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  background: var(--yellow);
+}
 .timer-cell.is-empty { background: var(--paper-strong); }
-.timer-number { font-size: var(--text-lg); min-width: 1.4em; text-align: right; }
-.timer.is-urgent { box-shadow: inset 0 0 0 1px var(--ink); }
+.timer-sep { flex: none; width: 1px; align-self: stretch; background: var(--line-faint); }
+.timer-number { font-size: 34px; line-height: 1; min-width: 1.1em; text-align: center; }
 .timer.is-urgent .timer-number { animation: nudge 220ms var(--ease-paper) 1; }
+.timer.is-urgent .timer-cell { box-shadow: inset 0 0 0 1px var(--ink); }
+.choice-list { display: flex; flex-direction: column; gap: var(--space-2); }
+.choice-num {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: inline-grid;
+  place-items: center;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  font-size: var(--text-sm);
+  line-height: 1;
+}
+.btn.choice-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 52px;
+}
 @keyframes nudge { 0%, 100% { transform: translateX(0); } 30% { transform: translateX(-2px); } 70% { transform: translateX(2px); } }
 
 /* ---------- Choice cards (취향) ---------- */
@@ -523,19 +664,18 @@ h1, h2, h3 { margin: 0; font-weight: 400; }
 }
 @keyframes stamp { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
 .seat-face {
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   display: grid;
   place-items: center;
   border: var(--line);
   border-radius: var(--radius-md);
   background: var(--paper-strong);
-  font-size: 24px;
-  line-height: 1;
-  user-select: none;
+  overflow: hidden;
 }
+.seat-face .family-avatar { width: 42px; height: 42px; }
 .seat.is-late .seat-face { opacity: .6; }
-.seat.is-empty .seat-face { border-style: dashed; filter: grayscale(1); opacity: .45; }
+.seat.is-empty .seat-face { border-style: dashed; opacity: .5; }
 .seat-name { font-size: var(--text-xs); line-height: 1.25; }
 .seat-state { font-size: var(--text-xs); line-height: 1.25; color: var(--ink-soft); }
 .seat.is-empty .seat-name { color: var(--ink-soft); }
@@ -558,7 +698,7 @@ h1, h2, h3 { margin: 0; font-weight: 400; }
   background: var(--paper-strong);
   transform: rotate(-.3deg);
 }
-.table-dish { font-size: 32px; line-height: 1; }
+.table-dish { display: grid; place-items: center; }
 .receipt-tag {
   background: var(--paper);
   border-top: 1px solid var(--ink);
@@ -571,7 +711,7 @@ h1, h2, h3 { margin: 0; font-weight: 400; }
   text-align: center;
   line-height: 1.35;
 }
-.spark { position: absolute; font-size: 18px; animation: sparkIn 220ms var(--ease-paper) both; }
+.spark { position: absolute; animation: sparkIn 220ms var(--ease-paper) both; }
 .spark.s1 { left: 4%; top: 26%; }
 .spark.s2 { right: 4%; top: 26%; }
 .spark.s3 { left: 10%; bottom: 10%; }
@@ -624,6 +764,17 @@ h1, h2, h3 { margin: 0; font-weight: 400; }
   background: var(--paper-strong);
 }
 .ending-lines { font-size: var(--text-md); line-height: 1.7; }
+.stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--line-faint);
+  font-size: var(--text-md);
+}
+.stat-row:last-of-type { border-bottom: none; }
+.stat-value { font-size: var(--text-lg); }
 
 /* ---------- Overlay / modal ---------- */
 .overlay {
@@ -667,18 +818,15 @@ h1, h2, h3 { margin: 0; font-weight: 400; }
   line-height: 1;
 }
 .overlay-close:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
-.event-emoji {
+.event-icon {
   width: 120px;
   height: 120px;
   margin: 0 auto var(--space-2);
   display: grid;
   place-items: center;
-  font-size: 64px;
-  line-height: 1;
   border: var(--line);
   border-radius: var(--radius-md);
   background: var(--paper);
-  user-select: none;
 }
 
 /* ---------- Toast ---------- */
@@ -852,14 +1000,24 @@ const OUTING_REACTIONS = {
   "동네 단골 식당": ["엄마: 여기 사장님이 우리 얼굴 알아보신다니까.", "아빠: 늘 먹던 그 맛이지."]
 };
 
-const EMOJI = {
-  mom: "👩", dad: "👨", me: "🧑", sib: "🧒", friend: "📱",
-  chair: "🪑", table: "🍽️", cook: "👨‍🍳", outing: "🏮",
-  heart: "❤️", star: "⭐", spark: "✨"
+// ui-v2 에셋 (assets/thanksmeal/ui-v2/)
+const AVATAR_SRC = {
+  dad: "assets/thanksmeal/ui-v2/avatar-dad.png",
+  mom: "assets/thanksmeal/ui-v2/avatar-mom.png",
+  me:  "assets/thanksmeal/ui-v2/avatar-me.png",
+  sib: "assets/thanksmeal/ui-v2/avatar-sibling.png"
 };
-const INTERRUPT_EMOJI = {
-  meeting: "💼", call: "📞", battery: "🪫", subway: "🚇", wifi: "📶", cat: "🐈"
-};
+const FAMILY_ORDER = [
+  { key: "dad", name: "아빠" },
+  { key: "mom", name: "엄마" },
+  { key: "me",  name: "나" },
+  { key: "sib", name: "동생" }
+];
+const TITLE_LOGO = "assets/thanksmeal/ui-v2/title-logo-cutlery-only.png";
+const START_DECORATION = "assets/thanksmeal/ui-v2/start-decoration-rice-bowl-hearts.png";
+
+const HEART_PATH = "M12 20.6C12 20.6 3.6 15.1 3.6 9.3 3.6 6.4 5.9 4.1 8.7 4.1c1.5 0 2.9.8 3.3 1.8.4-1 1.8-1.8 3.3-1.8 2.8 0 5.1 2.3 5.1 5.2 0 5.8-8.4 11.3-8.4 11.3z";
+const STAR_PATH  = "M12 3.4l2.6 5.5 6 .8-4.4 4.1 1.1 5.9-5.3-3-5.3 3 1.1-5.9L3.4 9.7l6-.8z";
 
 const TIMER_SECONDS = 5;
 
@@ -991,12 +1149,25 @@ function toast(text){
 
 let meterUid = 0;
 
-function meterCell(kind, frac){
-  const ch = kind === "heart" ? EMOJI.heart : EMOJI.star;
-  return `<span class="meter-cell" aria-hidden="true">
-    <span class="mc-empty">${ch}</span>
-    <span class="mc-fill" style="width:${(frac * 100).toFixed(1)}%">${ch}</span>
-  </span>`;
+function uiIcon(name, size){
+  return `<span class="ui-icon ${name}${size ? " " + size : ""}" aria-hidden="true"></span>`;
+}
+
+function faceImg(key, cls){
+  return `<img class="family-avatar${cls ? " " + cls : ""}" src="${AVATAR_SRC[key]}" alt="" aria-hidden="true">`;
+}
+
+function meterCell(kind, frac, size){
+  const n = ++meterUid;
+  const clipId = "mc" + n;
+  const path = kind === "heart" ? HEART_PATH : STAR_PATH;
+  return `<svg class="meter-cell${size ? " " + size : ""}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <defs><clipPath id="${clipId}"><rect x="0" y="0" width="${(24 * frac).toFixed(2)}" height="24"></rect></clipPath></defs>
+    <path d="${path}" fill="#FFFFFF" stroke="#272621" stroke-width="2" stroke-linejoin="round"></path>
+    <g clip-path="url(#${clipId})">
+      <path d="${path}" fill="#F2DA55" stroke="#272621" stroke-width="2" stroke-linejoin="round"></path>
+    </g>
+  </svg>`;
 }
 
 function meterFive(kind, value, opts){
@@ -1004,15 +1175,27 @@ function meterFive(kind, value, opts){
   const name = kind === "heart" ? "식탁 온기" : "나의 충전";
   let cells = "";
   for (let i = 0; i < 5; i++){
-    cells += meterCell(kind, Math.max(0, Math.min(1, value - i)));
+    cells += meterCell(kind, Math.max(0, Math.min(1, value - i)), o.size);
   }
   const num = o.hideNumber ? "" : `<span class="meter-num">${fmtNum(value)}/5</span>`;
   const maxCls = value >= 5 ? " is-max" : "";
   return `<span class="meter${maxCls}" role="img" aria-label="${name} 5점 중 ${fmtNum(value)}점">${cells}${num}</span>`;
 }
 
+function cellGauge(shortLabel, fullLabel, value){
+  let cells = "";
+  for (let i = 0; i < 5; i++){
+    const frac = Math.max(0, Math.min(1, value - i));
+    cells += `<span class="cell"><span class="cell-fill" style="width:${(frac * 100).toFixed(0)}%"></span></span>`;
+  }
+  return `<div class="hud-gauge">
+    <span class="hud-gauge-label" aria-hidden="true">${shortLabel}</span>
+    <span class="cell-meter" role="img" aria-label="${fullLabel} 5점 중 ${fmtNum(value)}점">${cells}</span>
+  </div>`;
+}
+
 function rewardIcon(kind){
-  return `<span class="reward-mark" aria-hidden="true">${kind === "heart" ? EMOJI.heart : EMOJI.star}</span>`;
+  return `<span class="reward-mark" aria-hidden="true">${uiIcon(kind, "sm")}</span>`;
 }
 
 // ===================== HUD =====================
@@ -1022,14 +1205,16 @@ function renderHud(){
   hudEl.hidden = hidden;
   if (hidden) return;
 
-  const dayLabel = DAY_NAMES[Math.min(state.currentDay, 6)];
+  const day = Math.min(state.currentDay, 6);
+  const dayLabel = DAY_NAMES[day];
   hudEl.innerHTML = `
-    <div class="day-stamp" role="img" aria-label="${dayLabel}요일">${dayLabel}</div>
-    <div class="hud-meters">
-      <div class="meter-row"><span class="meter-label" aria-hidden="true">온기</span>${meterFive("heart", state.tableWarmth)}</div>
-      <div class="meter-row"><span class="meter-label" aria-hidden="true">충전</span>${meterFive("star", state.personalRecharge)}</div>
-    </div>
-    <div class="goal-tag"><span class="hud-number">식사 ${state.mealCount}/3</span></div>
+    <div class="day-stamp" role="img" aria-label="${dayLabel}요일, ${day + 1}일차">${dayLabel} <span class="hud-number">${day + 1}</span>일</div>
+    <span class="hud-div" aria-hidden="true"></span>
+    ${cellGauge("온기", "식탁 온기", state.tableWarmth)}
+    <span class="hud-div" aria-hidden="true"></span>
+    ${cellGauge("충전", "나의 충전", state.personalRecharge)}
+    <span class="hud-div" aria-hidden="true"></span>
+    <div class="goal-tag">식사 <span class="hud-number">${state.mealCount}/3</span></div>
   `;
 }
 
@@ -1043,18 +1228,29 @@ function speakerOf(text){
   return { name, key: map[name] || null, body: text.slice(idx + 1).trim() };
 }
 
-function messageNode(text){
+function messageNode(text, idx){
   const sp = speakerOf(text);
   if (!sp) return el("p", "msg-note", esc(text));
   const node = el("div", "msg" + (sp.key === "me" ? " from-me" : ""));
-  const face = (sp.key && EMOJI[sp.key]) || EMOJI.friend;
-  const portrait = `<span class="avatar-emoji" aria-hidden="true">${face}</span>`;
+  const portrait = (sp.key && AVATAR_SRC[sp.key])
+    ? `<span class="msg-face">${faceImg(sp.key)}</span>`
+    : `<span class="msg-face">${uiIcon("phone", "lg")}</span>`;
+  const time = showChatTime ? `<span class="msg-time">${chatTime(idx || 0)}</span>` : "";
   node.innerHTML = `${portrait}
     <div class="msg-body">
       <div class="msg-name">${esc(sp.name)}</div>
-      <div class="msg-strip">${esc(sp.body)}</div>
+      <div class="msg-line">
+        <div class="msg-strip">${esc(sp.body)}</div>
+        ${time}
+      </div>
     </div>`;
   return node;
+}
+
+let showChatTime = false;
+function chatTime(i){
+  const minutes = Math.floor(i / 2);
+  return `오후 6:${String(minutes).padStart(2, "0")}`;
 }
 
 function playMessages(container, lines, onDone){
@@ -1071,7 +1267,7 @@ function playMessages(container, lines, onDone){
   };
   const flush = () => {
     container.innerHTML = "";
-    lines.forEach(t => container.appendChild(messageNode(t)));
+    lines.forEach((t, k) => container.appendChild(messageNode(t, k)));
     finish();
   };
 
@@ -1083,7 +1279,7 @@ function playMessages(container, lines, onDone){
   function step(){
     if (skipped){ flush(); return; }
     if (i >= lines.length){ finish(); return; }
-    container.appendChild(messageNode(lines[i]));
+    container.appendChild(messageNode(lines[i], i));
     container.parentElement && (container.parentElement.scrollTop = container.parentElement.scrollHeight);
     screenEl.scrollTop = screenEl.scrollHeight;
     i++;
@@ -1104,17 +1300,20 @@ function renderTitle(){
   clearScreen();
   appEl.dataset.screen = "title";
 
-  const scene = el("section", "scene");
+  const scene = el("section", "scene title-scene");
   scene.innerHTML = `
-    <div style="height:var(--space-6)"></div>
-    <h1 class="title-main">잘 먹었습니다!</h1>
-    <p class="sub-text center">오늘은 같이 저녁 먹을 수 있을까?</p>
-    <div class="emoji-scene" role="img" aria-label="식탁에 둘러앉은 네 식구">
-      <div class="emoji-row"><span>${EMOJI.mom}</span><span>${EMOJI.dad}</span></div>
-      <div class="emoji-table">🍚 🍲 🥢</div>
-      <div class="emoji-row"><span>${EMOJI.me}</span><span>${EMOJI.sib}</span></div>
+    <h1 class="sr-only">잘 먹었습니다!</h1>
+    <div class="title-brand">
+      <img class="title-logo" src="${TITLE_LOGO}" alt="잘 먹었습니다!">
+      <img class="start-decoration" src="${START_DECORATION}" alt="" aria-hidden="true">
     </div>
-    <p class="sub-text center">일주일 동안, 오늘 저녁을 대답하는 게임</p>
+    <div class="face-row">
+      ${FAMILY_ORDER.map(f => `<div class="face-col">
+        <span class="face-box">${faceImg(f.key)}</span>
+        <span class="name">${f.name}</span>
+      </div>`).join("")}
+    </div>
+    <p class="title-question">오늘 저녁, 같이 먹을래?</p>
   `;
   screenEl.appendChild(scene);
 
@@ -1126,7 +1325,7 @@ function renderTitle(){
   const actions = el("div", "action-area");
   const hasSave = !!loadSave();
 
-  const startBtn = el("button", "btn primary", "이번 주 시작하기");
+  const startBtn = el("button", "btn primary hero", "일주일 시작하기");
   startBtn.type = "button";
   startBtn.onclick = () => {
     if (hasSave && !confirm("진행 중인 한 주가 있어요. 새로 시작하면 이번 주 기록이 사라집니다. 계속할까요?")) return;
@@ -1135,6 +1334,9 @@ function renderTitle(){
   };
   actions.appendChild(startBtn);
   primaryActionBtn = startBtn;
+
+  const caption = el("p", "title-caption", "7일 동안 가족의 저녁을 채워보세요");
+  actions.appendChild(caption);
 
   if (hasSave){
     const resume = el("button", "btn secondary", "이어서 하기");
@@ -1339,7 +1541,7 @@ function renderSchedule(){
       ${slot
         ? `<span class="food-emoji" aria-hidden="true">${type.icon}</span>
            <span class="day-slot">${esc(type.label)}</span>
-           ${slot.importance === "important" ? '<span class="star" aria-hidden="true">★</span>' : ""}`
+           ${slot.importance === "important" ? uiIcon("star", "sm") : ""}`
         : `<span class="day-slot" aria-hidden="true">—</span>`}
     `;
     card.setAttribute("aria-label", slot
@@ -1371,16 +1573,16 @@ function renderSchedule(){
 
   if (schedTemp.length){
     const list = el("section", "panel");
-    list.innerHTML = `<p class="sub-text">★ 표시가 중요한 약속이에요. 중요한 약속은 참석할 때 더 많이 충전됩니다.</p>` +
+    list.innerHTML = `<p class="sub-text">${uiIcon("star", "sm")} 표시가 중요한 약속이에요. 중요한 약속은 참석할 때 더 많이 충전됩니다.</p>` +
       schedTemp.slice().sort((a, b) => a.day - b.day).map(s => {
         const t = SCHEDULE_TYPES.find(x => x.id === s.type);
-        return `<p class="body-text">${DAY_NAMES[s.day]}요일 · ${esc(t.label)} ${s.importance === "important" ? "★ 중요" : ""}</p>`;
+        return `<p class="body-text">${DAY_NAMES[s.day]}요일 · ${esc(t.label)} ${s.importance === "important" ? uiIcon("star", "sm") + " 중요" : ""}</p>`;
       }).join("");
     screenEl.appendChild(list);
 
     const starRow = el("div", "chip-row");
     schedTemp.slice().sort((a, b) => a.day - b.day).forEach(s => {
-      const c = el("button", "chip" + (s.importance === "important" ? " is-selected" : ""), `${DAY_NAMES[s.day]} ★ 중요로`);
+      const c = el("button", "chip" + (s.importance === "important" ? " is-selected" : ""), `${DAY_NAMES[s.day]} ${uiIcon("star", "sm")} 중요로`);
       c.type = "button";
       c.onclick = () => {
         schedTemp.forEach(x => { x.importance = "normal"; });
@@ -1470,7 +1672,7 @@ function renderMenuPreview(){
     const restricted = wm.menu.ings.includes(state.preferences.restrictedIngredient);
     const flags = [];
     if (restricted) flags.push('<span class="menu-flag" title="못 먹는 재료" aria-label="못 먹는 재료 포함">▲</span>');
-    else if (liked) flags.push('<span class="menu-flag" aria-label="좋아하는 음식">♥</span>');
+    else if (liked) flags.push(`<span class="menu-flag" role="img" aria-label="좋아하는 음식">${uiIcon("heart", "sm")}</span>`);
     else if (disliked) flags.push('<span class="menu-flag" aria-label="싫어하는 음식">×</span>');
     return `<div class="receipt-row">
       <span>${DAY_NAMES[i]}요일</span>
@@ -1572,24 +1774,24 @@ function renderDay(){
   const outing = isOutingDay(day);
 
   const scene = el("section", "scene");
-  let sceneEmoji = TAG_ICON[wm.menu.tags[0]] || EMOJI.table;
-  let sceneAlt = "오늘 저녁 메뉴";
+  let sceneIcon = "bowl";
+  let sceneAlt = "오늘 저녁 밥상";
   let highlight = false;
   let sceneTitle = `${DAY_NAMES[day]}요일 저녁`;
   if (outing){
-    sceneEmoji = EMOJI.outing;
+    sceneIcon = "shop";
     sceneAlt = "가족 외식";
     sceneTitle = "오늘은 다 같이 밖에서";
     highlight = true;
   } else if (cook === "dad"){
-    sceneEmoji = EMOJI.cook;
-    sceneAlt = "앞치마를 두르고 요리하는 아빠";
+    sceneIcon = "pot";
+    sceneAlt = "냄비 앞에 선 아빠";
     sceneTitle = "오늘은 아빠가 요리하는 날";
     highlight = true;
   }
 
   scene.innerHTML = `<h2 class="screen-title center">${esc(sceneTitle)}</h2>
-    <div class="scene-emoji${highlight ? " highlight" : ""}" role="img" aria-label="${esc(sceneAlt)}"><span>${sceneEmoji}</span></div>`;
+    <div class="scene-art${highlight ? " highlight" : ""}" role="img" aria-label="${esc(sceneAlt)}">${uiIcon(sceneIcon, "xl")}</div>`;
   screenEl.appendChild(scene);
 
   const info = el("section", "panel");
@@ -1601,7 +1803,7 @@ function renderDay(){
     <p class="body-text"><strong>${esc(previewMenu)}</strong></p>
     <p class="sub-text">${tagsText}</p>
     ${sch
-      ? `<p class="body-text" style="margin-top:var(--space-2)">오늘 약속: ${esc(SCHEDULE_TYPES.find(t => t.id === sch.type).label)}${sch.importance === "important" ? " ★ 중요" : ""}</p>`
+      ? `<p class="body-text" style="margin-top:var(--space-2)">오늘 약속: ${esc(SCHEDULE_TYPES.find(t => t.id === sch.type).label)}${sch.importance === "important" ? " " + uiIcon("star", "sm") + " 중요" : ""}</p>`
       : `<p class="body-text" style="margin-top:var(--space-2)">오늘은 약속이 없어요.</p>`}
   `;
   screenEl.appendChild(info);
@@ -1644,11 +1846,20 @@ function renderChat(){
   const cookName = cook === "dad" ? "아빠" : "엄마";
   const outing = !!actualMenu.outing;
 
-  const head = el("section", "panel plain");
-  head.innerHTML = `<h2 class="screen-title">가족 단톡방 · 오후 6:00</h2>`;
+  showChatTime = true;
+
+  const head = el("section", "chat-head");
+  head.innerHTML = `
+    <h2 class="chat-title">가족 단톡방 · 오후 6:00</h2>
+    <div class="face-row roster">
+      ${FAMILY_ORDER.map(f => `<div class="face-col">
+        <span class="face-box">${faceImg(f.key)}</span>
+        <span class="name">${f.name}</span>
+      </div>`).join("")}
+    </div>`;
   screenEl.appendChild(head);
 
-  const chatPanel = el("section", "panel");
+  const chatPanel = el("section", "panel plain");
   const chat = el("div", "chat");
   chatPanel.appendChild(chat);
   screenEl.appendChild(chatPanel);
@@ -1672,13 +1883,11 @@ function renderChat(){
   }
   absentees.forEach(who => lines.push(pick(ABSENT_LINES[who])));
 
-  const timerWrap = el("section");
+  const timerWrap = el("section", "answer-wrap");
   screenEl.appendChild(timerWrap);
-  const actions = el("div", "action-area");
-  screenEl.appendChild(actions);
 
   playMessages(chat, lines, () => {
-    startAnswerPhase(chatPanel, chat, timerWrap, actions, absentees, actualMenu, cook);
+    startAnswerPhase(chatPanel, chat, timerWrap, null, absentees, actualMenu, cook);
   });
 }
 
@@ -1693,12 +1902,19 @@ function startAnswerPhase(chatPanel, chat, timerWrap, actions, absentees, actual
   options.push({ key:"late", label:"조금 늦게 먹을게." });
 
   timerWrap.innerHTML = `
-    <div class="timer" id="timerBox">
-      <span class="timer-label">5초 안에 답장하기</span>
-      <span class="timer-cells" id="timerCells" aria-hidden="true">
-        ${"<span class=\"timer-cell\"></span>".repeat(TIMER_SECONDS)}
-      </span>
-      <span class="timer-number" id="timerNum">5</span>
+    <div class="answer-panel">
+      <div class="timer" id="timerBox">
+        ${uiIcon("clock", "lg")}
+        <span class="timer-main">
+          <span class="timer-label">${TIMER_SECONDS}초 안에 답장하기</span>
+          <span class="timer-cells" id="timerCells" aria-hidden="true">
+            ${"<span class=\"timer-cell\"></span>".repeat(TIMER_SECONDS)}
+          </span>
+        </span>
+        <span class="timer-sep" aria-hidden="true"></span>
+        <span class="timer-number" id="timerNum">${TIMER_SECONDS}</span>
+      </div>
+      <div class="choice-list" id="choiceList"></div>
     </div>`;
   const timerBox = document.getElementById("timerBox");
   const cells = Array.from(document.getElementById("timerCells").children);
@@ -1707,12 +1923,14 @@ function startAnswerPhase(chatPanel, chat, timerWrap, actions, absentees, actual
   let answered = false;
   const buttons = [];
 
+  const choiceList = document.getElementById("choiceList");
   options.forEach((opt, i) => {
-    const b = el("button", "btn", `<span class="key" aria-hidden="true">${i + 1}</span>${esc(opt.label)}`);
+    const b = el("button", "btn choice-btn",
+      `<span class="choice-num" aria-hidden="true">${i + 1}</span><span>${esc(opt.label)}</span>`);
     b.type = "button";
     b.setAttribute("aria-keyshortcuts", String(i + 1));
     b.onclick = () => choose(opt.key, b);
-    actions.appendChild(b);
+    choiceList.appendChild(b);
     buttons.push(b);
   });
   activeKeyChoices = buttons;
@@ -1750,7 +1968,7 @@ function startAnswerPhase(chatPanel, chat, timerWrap, actions, absentees, actual
     buttons.forEach(b => { b.disabled = true; });
     if (btn) btn.classList.add("is-selected");
     timerBox.classList.remove("is-urgent");
-    timerWrap.innerHTML = "";
+    timerBox.remove();
 
     if (key !== "timeout"){
       const sending = el("p", "msg-note", '보내는 중 <span class="ink-dots"><i></i><i></i><i></i></span>');
@@ -1758,7 +1976,7 @@ function startAnswerPhase(chatPanel, chat, timerWrap, actions, absentees, actual
       const label = options.find(o => o.key === key).label;
       setTimeout(() => {
         sending.remove();
-        chat.appendChild(messageNode(`나: ${label}`));
+        chat.appendChild(messageNode(`나: ${label}`, chat.querySelectorAll(".msg").length));
         markLatest(chat);
         proceed(key);
       }, fastMode ? 60 : 420);
@@ -1787,9 +2005,9 @@ function startAnswerPhase(chatPanel, chat, timerWrap, actions, absentees, actual
 }
 
 function showInterruption(ev, onDone){
-  const face = INTERRUPT_EMOJI[ev.id] || "💬";
+  const face = uiIcon("phone", "xl");
   const body = `
-    <div class="event-emoji" role="img" aria-label="${esc(ev.title)}">${face}</div>
+    <div class="event-icon" role="img" aria-label="${esc(ev.title)}">${face}</div>
     <h2 class="screen-title">${esc(ev.title)}</h2>
     <p class="msg-note">메시지를 전송하는 중 <span class="ink-dots"><i></i><i></i><i></i></span></p>
   `;
@@ -1797,7 +2015,7 @@ function showInterruption(ev, onDone){
 
   setTimeout(() => {
     card.innerHTML = `
-      <div class="event-emoji" role="img" aria-label="${esc(ev.title)}">${face}</div>
+      <div class="event-icon" role="img" aria-label="${esc(ev.title)}">${face}</div>
       <h2 class="screen-title">${esc(ev.title)}</h2>
       <div class="chat" style="text-align:left">
         ${messageNode("나: " + ev.delayed).outerHTML}
@@ -1909,7 +2127,7 @@ function finishDay(key, absentees, actualMenu, sch, hasRestricted){
 
 function seatBlock(key, name, status){
   const stateText = status === "together" ? "함께 먹음" : (status === "late" ? "늦게 합류" : "불참");
-  const face = status === "empty" ? EMOJI.chair : EMOJI[key];
+  const face = status === "empty" ? uiIcon("chair", "lg") : faceImg(key);
   return `<div class="seat pos-${key} ${status === "empty" ? "is-empty" : ""} ${status === "late" ? "is-late" : ""}"
       style="animation-delay:${["mom","dad","sib","me"].indexOf(key) * 160}ms">
       <span class="seat-face" aria-hidden="true">${face}</span>
@@ -1938,14 +2156,14 @@ function renderResult(){
 
   const wrap = el("section", "table-wrap");
   const allTogether = ["mom","dad","sib","me"].every(k => r.seats[k] === "together");
-  const dishEmoji = r.outing ? EMOJI.outing : (TAG_ICON[r.menuTag] || EMOJI.table);
-  const sparks = [1,2,3,4].map(i => `<span class="spark s${i}" aria-hidden="true">${EMOJI.spark}</span>`).join("");
+  const dishIcon = uiIcon(r.outing ? "shop" : "cutlery", "lg");
+  const sparks = [1,2,3,4].map(i => `<span class="spark s${i}">${uiIcon("sparkle", "sm")}</span>`).join("");
   wrap.innerHTML = `
     <div class="table-layout">
       ${seatBlock("mom","엄마", r.seats.mom)}
       ${seatBlock("dad","아빠", r.seats.dad)}
       <div class="table-top">
-        <span class="table-dish" aria-hidden="true">${dishEmoji}</span>
+        <span class="table-dish" aria-hidden="true">${dishIcon}</span>
         <span class="receipt-tag">${r.outing ? "가족 외식<br>" : ""}${esc(r.menuName)}</span>
       </div>
       ${seatBlock("sib","동생", r.seats.sib)}
@@ -2005,19 +2223,19 @@ function computeEnding(){
 
   let ending;
   if (w >= 5 && r >= 3){
-    ending = { id:"warmed", title:"사랑이 채워진 식탁",
+    ending = { id:"warmed", title:"사랑이 채워진 식탁", headline:"가족의 마음이 따뜻하게 채워졌어요",
       lines:["일주일 동안 식탁에는 음식만 놓인 것이 아니었다.", "짧은 대답과 기다림, 함께한 시간이 빈자리를 채웠다."] };
   } else if (w >= 3 && r >= 3){
-    ending = { id:"good", title:"잘 먹었습니다",
+    ending = { id:"good", title:"잘 먹었습니다", headline:"가족도 나도 놓치지 않은 한 주였어요",
       lines:["가족과 나의 시간을 모두 놓치지 않은 한 주였다.", "다음 주에도 이 정도면 충분하다."] };
   } else if (w >= 4 && r < 3){
-    ending = { id:"regular", title:"식탁의 단골",
+    ending = { id:"regular", title:"식탁의 단골", headline:"식탁은 따뜻했고, 내 시간은 조금 남았어요",
       lines:["식탁은 따뜻하게 채웠지만 미뤄둔 약속도 조금 남았다.", "다음 주에는 나를 위한 저녁도 필요할지 모른다."] };
   } else if (w < 3 && r >= 4){
-    ending = { id:"myweek", title:"나를 위한 한 주",
+    ending = { id:"myweek", title:"나를 위한 한 주", headline:"나를 채운 만큼 식탁은 조용했어요",
       lines:["이번 주에는 지켜야 할 약속이 많았다.", "일요일 밤, 냉장고에는 가족이 남겨둔 반찬이 있었다."] };
   } else {
-    ending = { id:"leftseat", title:"아직 남은 한 자리",
+    ending = { id:"leftseat", title:"아직 남은 한 자리", headline:"이번 주는 서로의 시간이 어긋났어요",
       lines:["이번 주에는 모두의 시간이 좀처럼 맞지 않았다.", "그래도 식탁의 자리는 다음 주에도 그대로 남아 있다."] };
   }
 
@@ -2031,6 +2249,7 @@ function computeEnding(){
 
   return {
     ending,
+    headline: ending.headline,
     pattern: patterns.length ? patterns[0] : "조용히 지나간 한 주",
     cancelled,
     attended,
@@ -2061,7 +2280,21 @@ function renderEnding(){
   }
 
   const head = el("section", "panel plain");
-  head.innerHTML = `<h1 class="screen-title center" id="endTitle" tabindex="-1">${esc(result.ending.title)}</h1>`;
+  let warmthCells = "";
+  for (let i = 0; i < 5; i++){
+    warmthCells += meterCell("heart", Math.max(0, Math.min(1, state.tableWarmth - i)), "lg");
+  }
+  head.innerHTML = `
+    <h1 class="screen-title center" id="endTitle" tabindex="-1">${esc(result.ending.title)}</h1>
+    <div class="center" style="margin:var(--space-2) 0">
+      <span class="meter" style="gap:var(--space-1)" role="img"
+        aria-label="식탁 온기 5점 중 ${fmtNum(state.tableWarmth)}점">${warmthCells}</span>
+    </div>
+    <p class="body-text center">${esc(result.headline)}</p>
+    <div class="face-row" style="margin:var(--space-4) 0 var(--space-2)">
+      ${FAMILY_ORDER.map(f => `<span class="face-box">${faceImg(f.key)}</span>`).join("")}
+    </div>
+  `;
   screenEl.appendChild(head);
 
   const plates = el("section", "plates");
@@ -2078,16 +2311,12 @@ function renderEnding(){
 
   const meters = el("section", "panel");
   meters.innerHTML = `
-    <div class="meter-row" style="margin-bottom:var(--space-2)">
-      <span class="meter-label" aria-hidden="true">온기</span>${meterFive("heart", state.tableWarmth)}
-    </div>
-    <div class="meter-row">
-      <span class="meter-label" aria-hidden="true">충전</span>${meterFive("star", state.personalRecharge)}
-    </div>
+    <div class="stat-row"><span class="stat-name">함께 먹은 저녁</span><span class="stat-value hud-number">${state.mealCount}회</span></div>
+    <div class="stat-row"><span class="stat-name">식탁 온기</span><span class="stat-value hud-number">${fmtNum(state.tableWarmth)}</span></div>
+    <div class="stat-row"><span class="stat-name">나의 충전</span><span class="stat-value hud-number">${fmtNum(state.personalRecharge)}</span></div>
     <p class="sub-text" style="margin-top:var(--space-3)">
-      가족과 식사 <span class="hud-number">${state.mealCount}회</span> ·
       넷이서 <span class="hud-number">${state.fullFamilyMealCount}회</span> ·
-      늦게 합류 <span class="hud-number">${state.lateJoinCount}회</span><br>
+      늦게 합류 <span class="hud-number">${state.lateJoinCount}회</span> ·
       지킨 약속 <span class="hud-number">${result.attended}개</span> ·
       미룬 약속 <span class="hud-number">${result.cancelled}개</span>
     </p>
@@ -2102,10 +2331,7 @@ function renderEnding(){
   `;
   screenEl.appendChild(story);
 
-  const actions = el("div", "action-area");
-  const again = el("button", "btn primary", "다음 주도 시작하기");
-  again.type = "button";
-  again.onclick = () => {
+  function resetWeek(){
     clearSave();
     fastMode = false;
     prefStep = 0;
@@ -2113,14 +2339,22 @@ function renderEnding(){
     schedTemp = [];
     pendingType = null;
     state = freshState();
+  }
+
+  const actions = el("div", "action-area");
+  const again = el("button", "btn primary", "다음 주도 함께하기");
+  again.type = "button";
+  again.onclick = () => {
+    resetWeek();
+    state.phase = "prefs";
     route();
   };
   actions.appendChild(again);
 
-  const record = el("button", "btn ghost", "기록 보기");
-  record.type = "button";
-  record.onclick = openRecordModal;
-  actions.appendChild(record);
+  const home = el("button", "btn ghost", "처음으로");
+  home.type = "button";
+  home.onclick = () => { resetWeek(); route(); };
+  actions.appendChild(home);
 
   screenEl.appendChild(actions);
   primaryActionBtn = again;
@@ -2173,6 +2407,7 @@ function route(){
   if (timerHandle){ clearInterval(timerHandle); timerHandle = null; }
   closeOverlay();
   skipBtn.hidden = true;
+  showChatTime = false;
   renderHud();
 
   if (!state){ renderTitle(); return; }

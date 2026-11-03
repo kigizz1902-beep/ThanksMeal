@@ -3,3 +3,6 @@ images/
 
 # OS
 .DS_Store
+
+# 원본 시안 작업 폴더 (정리본은 assets/thanksmeal/ui-v2/ 에 보관)
+image_2/

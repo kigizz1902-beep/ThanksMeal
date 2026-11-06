@@ -99,6 +99,19 @@
 | `endings/ending-07-family-outing-1024.webp` | `family-outing` | 모두 함께 외식하는 날 |
 | `endings/ending-08-remembered-bowl-1024.webp` | `remembered-bowl` | 나를 기억한 한 그릇 |
 
+## 음식·일정 아이콘 (tutorial-icons-v1/, icons/)
+
+`tutorial-icons-v1/`는 게임 방법 카드와 같은 손그림 스타일로 받은 원본 아이콘 세트다 (개별 PNG 256×256, 스프라이트 1280×1280, 자세한 구성은 `tutorial-icons-v1/README.md` 참고). 이 중 음식 취향·못 먹는 재료·개인 약속 종류에 쓰이는 16종과 경고 아이콘 1종만 128×128 WebP로 재압축해 `icons/`에 두고 실제 게임 화면에서 불러온다. 음식 태그 이모지(🦐🥩🍜 등)와 일정 종류 이모지(🍻🎨📚 등), 못 먹는 재료의 ⚠️ 표시를 모두 이 아이콘으로 대체했다.
+
+| `icons/` 파일 | 쓰임 |
+|---|---|
+| `seafood-shrimp.webp` · `meat-steak.webp` · `noodle-bowl.webp` · `soup-bowl.webp` · `spicy-chili.webp` · `plain-leaf.webp` | 음식 취향 6종 (해산물·고기·면·국물·매운 음식·담백한 음식) |
+| `oyster.webp` · `peanut.webp` · `dairy-cheese.webp` · `raw-fish-sushi.webp` · `mushroom.webp` | 못 먹는 재료 5종 |
+| `friends.webp` · `hobby-controller.webp` · `study-book.webp` · `event-bunting.webp` · `rest-cup.webp` | 개인 약속 종류 5종 (친구·취미·공부·행사·혼자 쉬기) |
+| `warning.webp` | 못 먹는 재료를 고르지 않았을 때의 일반 경고 |
+
+`tutorial-icons-v1/gameplay/`의 나머지 15종(시계·말풍선·하트·가족 등)은 기존 `ui-v2/core-ui-icons.png` 스프라이트와 역할이 겹쳐 현재 화면에는 적용하지 않았다. 다른 스타일로 교체하고 싶을 때를 위해 원본만 보관한다.
+
 ## 스프라이트 순서
 
 ### family-portraits.png

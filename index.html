@@ -568,7 +568,7 @@ h1, h2, h3 { margin: 0; font-weight: 400; }
 .choice-card.is-selected .scribble { opacity: 1; }
 .choice-card > .label { position: relative; z-index: 1; display: flex; align-items: center; gap: var(--space-2); }
 .choice-card .check { position: absolute; top: 4px; right: 8px; z-index: 1; font-size: var(--text-sm); }
-.food-emoji { font-size: 18px; line-height: 1; }
+.food-emoji { width: 18px; height: 18px; object-fit: contain; vertical-align: -3px; flex: none; }
 
 .step-count { font-size: var(--text-sm); color: var(--ink-soft); }
 
@@ -972,11 +972,27 @@ h1, h2, h3 { margin: 0; font-weight: 400; }
 const DAY_NAMES = ["월","화","수","목","금","토","일"];
 
 const FOOD_TAGS = ["해산물","고기","면","국물","매운 음식","담백한 음식"];
+const ICON_DIR = "assets/thanksmeal/icons/";
 const TAG_ICON = {
-  "해산물":"🦐", "고기":"🥩", "면":"🍜", "국물":"🍲",
-  "매운 음식":"🌶️", "담백한 음식":"🍚"
+  "해산물": ICON_DIR + "seafood-shrimp.webp",
+  "고기": ICON_DIR + "meat-steak.webp",
+  "면": ICON_DIR + "noodle-bowl.webp",
+  "국물": ICON_DIR + "soup-bowl.webp",
+  "매운 음식": ICON_DIR + "spicy-chili.webp",
+  "담백한 음식": ICON_DIR + "plain-leaf.webp"
 };
 const RESTRICT_INGS = ["굴","땅콩","유제품","날생선","버섯"];
+const RESTRICT_ICON = {
+  "굴": ICON_DIR + "oyster.webp",
+  "땅콩": ICON_DIR + "peanut.webp",
+  "유제품": ICON_DIR + "dairy-cheese.webp",
+  "날생선": ICON_DIR + "raw-fish-sushi.webp",
+  "버섯": ICON_DIR + "mushroom.webp"
+};
+const WARNING_ICON = ICON_DIR + "warning.webp";
+function foodIcon(src){
+  return `<img class="food-emoji" src="${src}" alt="" aria-hidden="true">`;
+}
 
 const MENUS = [
   {name:"된장찌개와 제육볶음", tags:["고기","국물"], ings:[]},
@@ -1006,11 +1022,11 @@ const CHANGE_EVENTS = [
 const DELIVERY_MENU = {name:"치킨 배달", tags:["고기"], ings:[]};
 
 const SCHEDULE_TYPES = [
-  {id:"friend", label:"친구", icon:"🍻"},
-  {id:"club",   label:"취미", icon:"🎨"},
-  {id:"study",  label:"공부", icon:"📚"},
-  {id:"show",   label:"행사", icon:"🎫"},
-  {id:"rest",   label:"혼자 쉬기", icon:"🛋️"}
+  {id:"friend", label:"친구", icon: ICON_DIR + "friends.webp"},
+  {id:"club",   label:"취미", icon: ICON_DIR + "hobby-controller.webp"},
+  {id:"study",  label:"공부", icon: ICON_DIR + "study-book.webp"},
+  {id:"show",   label:"행사", icon: ICON_DIR + "event-bunting.webp"},
+  {id:"rest",   label:"혼자 쉬기", icon: ICON_DIR + "rest-cup.webp"}
 ];
 
 const IMPORTANCE = {
@@ -1298,7 +1314,7 @@ function esc(s){
 }
 function tagLabel(tag){
   if (!tag) return "";
-  return `<span class="food-emoji" aria-hidden="true">${TAG_ICON[tag] || ""}</span> ${esc(tag)}`;
+  return `${TAG_ICON[tag] ? foodIcon(TAG_ICON[tag]) : ""} ${esc(tag)}`;
 }
 
 const appEl = document.getElementById("app");
@@ -1768,7 +1784,7 @@ function renderPrefs(){
       prompt.textContent = "못 먹는 재료 1개를 골라주세요. 취향이 아니라 식사 제한이에요.";
       RESTRICT_INGS.forEach(ing => {
         const sel = prefTemp.restricted === ing;
-        grid.appendChild(card(`<span class="food-emoji" aria-hidden="true">⚠️</span> ${esc(ing)}`, sel, false, () => {
+        grid.appendChild(card(`${foodIcon(RESTRICT_ICON[ing] || WARNING_ICON)} ${esc(ing)}`, sel, false, () => {
           prefTemp.restricted = ing;
           draw();
         }));
@@ -1816,7 +1832,7 @@ function renderSchedule(){
   const chips = el("div", "chip-row");
   SCHEDULE_TYPES.forEach(t => {
     const c = el("button", "chip" + (pendingType === t.id ? " is-selected" : ""),
-      `<span class="food-emoji" aria-hidden="true">${t.icon}</span> ${esc(t.label)}`);
+      `${foodIcon(t.icon)} ${esc(t.label)}`);
     c.type = "button";
     c.setAttribute("aria-pressed", pendingType === t.id ? "true" : "false");
     c.onclick = () => { pendingType = (pendingType === t.id) ? null : t.id; renderSchedule(); };
@@ -1833,7 +1849,7 @@ function renderSchedule(){
     card.innerHTML = `
       <span class="day-name">${d}</span>
       ${slot
-        ? `<span class="food-emoji" aria-hidden="true">${type.icon}</span>
+        ? `${foodIcon(type.icon)}
            <span class="day-slot">${esc(type.label)}</span>
            ${slot.importance === "important" ? uiIcon("star", "sm") : ""}`
         : `<span class="day-slot" aria-hidden="true">—</span>`}
@@ -1970,7 +1986,7 @@ function renderMenuPreview(){
     else if (disliked) flags.push('<span class="menu-flag" aria-label="싫어하는 음식">×</span>');
     return `<div class="receipt-row">
       <span>${DAY_NAMES[i]}요일</span>
-      <span class="food-emoji" aria-hidden="true">${TAG_ICON[wm.menu.tags[0]] || ""}</span>
+      ${TAG_ICON[wm.menu.tags[0]] ? foodIcon(TAG_ICON[wm.menu.tags[0]]) : ""}
       <span class="menu-name${liked && !restricted ? " is-liked" : ""}">${esc(wm.menu.name)}</span>
       <span>${flags.join("")}</span>
     </div>`;
@@ -1984,7 +2000,7 @@ function renderMenuPreview(){
   mine.innerHTML = `
     <p class="body-text">좋아하는 음식: ${state.preferences.likedTags.map(tagLabel).join(" · ")}</p>
     <p class="body-text">싫어하는 음식: ${tagLabel(state.preferences.dislikedTag)}</p>
-    <p class="body-text">못 먹는 재료: <span class="food-emoji" aria-hidden="true">⚠️</span> ${esc(state.preferences.restrictedIngredient)}</p>
+    <p class="body-text">못 먹는 재료: ${foodIcon(RESTRICT_ICON[state.preferences.restrictedIngredient] || WARNING_ICON)} ${esc(state.preferences.restrictedIngredient)}</p>
   `;
   screenEl.appendChild(mine);
 

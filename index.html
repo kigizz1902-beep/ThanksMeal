@@ -2062,11 +2062,12 @@ function buildWeek(){
   for (let i = 0; i < 7; i++) menus.push(pool[i % pool.length]);
   menus[6] = SUNDAY_SPECIAL;
 
-  const changeDays = shuffle([0,1,2,3,4,5]).slice(0, 2);
-  state.weeklyMenus = menus.map((m, i) => ({ menu:m, changed: changeDays.includes(i), changeEvent:null, actualMenu:null }));
-
   state.weeklyCook = { cook:"mom", day:null };
   if (Math.random() < 0.4) state.weeklyCook = { cook:"dad", day: rand(6) };
+
+  const changeCandidates = [0,1,2,3,4,5].filter(d => d !== state.weeklyCook.day);
+  const changeDays = shuffle(changeCandidates).slice(0, 2);
+  state.weeklyMenus = menus.map((m, i) => ({ menu:m, changed: changeDays.includes(i), changeEvent:null, actualMenu:null }));
 
   state.weeklyInterruption = { enabled:false, day:null, eventId:null, triggered:false };
   if (meta.interruptionUnlocked && Math.random() < 0.3){

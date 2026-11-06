@@ -1150,13 +1150,15 @@ const NOON_EVENTS = [
   "엄마: 오늘 장 보러 가는데 먹고 싶은 거 있어?",
   "아빠: 오늘 좀 늦을지도.",
   "동생: 나 오늘 저녁에 학원 있어.",
-  "친구: 오늘 약속 꼭 오는 거지?",
   "엄마: 오늘따라 유난히 배고프다...",
   "아빠: 오늘 회식 있을 수도 있어. 이따 알려줄게.",
   "동생: 오늘 메뉴 뭐야? 궁금해 죽겠네.",
   "엄마: 냉장고 청소나 할까 하는데, 오늘 간단히 먹을까?",
-  "친구: 야 오늘 시간 맞나 다시 확인해줘.",
   "아빠: 요즘 다들 바쁘네. 다음 주엔 다 같이 먹자."
+];
+const NOON_EVENTS_SCHEDULE = [
+  "친구: 오늘 약속 꼭 오는 거지?",
+  "친구: 야 오늘 시간 맞나 다시 확인해줘."
 ];
 
 const ABSENT_LINES = {
@@ -2269,9 +2271,10 @@ function renderDay(){
   screenEl.appendChild(actions);
   primaryActionBtn = go;
 
+  const noonPool = sch ? NOON_EVENTS.concat(NOON_EVENTS_SCHEDULE) : NOON_EVENTS;
   const lines = outing
     ? OUTING_INTRO.slice()
-    : (Math.random() < 0.7 ? [pick(NOON_EVENTS)] : ["오늘 낮에는 조용했습니다."]);
+    : (Math.random() < 0.7 ? [pick(noonPool)] : ["오늘 낮에는 조용했습니다."]);
 
   playMessages(chat, lines, () => {
     go.disabled = false;

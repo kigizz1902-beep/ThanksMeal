@@ -1652,7 +1652,7 @@ function renderTutorial(onDone){
 
 function startNewWeek(){
   state = freshState();
-  state.phase = "intro";
+  state.phase = "prefs";
   route();
 }
 
@@ -1684,31 +1684,6 @@ function openEndingAlbum(){
     <div class="ending-collection">${items}</div>
     <p class="sub-text" style="margin-top:var(--space-3)">한 주를 다르게 보내면 다른 결말을 만날 수 있어요.</p>
   `, { closable:true });
-}
-
-// ===================== 화면: 소개 =====================
-
-function renderIntro(){
-  clearScreen();
-  appEl.dataset.screen = "setup";
-
-  const panel = el("section", "panel");
-  panel.innerHTML = `
-    <h2 class="screen-title">이번 주 이야기</h2>
-    <p class="body-text">성별이 정해지지 않은 자녀 '나'가 되어 한 주의 저녁을 고릅니다.</p>
-    <p class="body-text">매일 오후 6시, 가족 단톡방에 메뉴가 올라오면 <strong>5초</strong> 안에 답해야 해요.</p>
-    <p class="body-text">일주일 동안 가족과 나의 시간을 채워보세요. 가족과 세 번 저녁을 먹는 것이 이번 주의 작은 목표입니다.</p>
-    <p class="sub-text">벌점은 없습니다. 채운 것만 남습니다.</p>
-  `;
-  screenEl.appendChild(panel);
-
-  const actions = el("div", "action-area");
-  const next = el("button", "btn primary", "준비 시작하기");
-  next.type = "button";
-  next.onclick = () => { state.phase = "prefs"; save(); route(); };
-  actions.appendChild(next);
-  screenEl.appendChild(actions);
-  primaryActionBtn = next;
 }
 
 // ===================== 화면: 1단계 음식 취향 =====================
@@ -2745,6 +2720,7 @@ function migrate(s){
   const merged = Object.assign(fresh, s);
   if (merged.phase === "morning" || merged.phase === "noon") merged.phase = "day";
   if (merged.phase === "summary") merged.phase = "ending";
+  if (merged.phase === "intro") merged.phase = "prefs";
   if (!Array.isArray(merged.dayLog)) merged.dayLog = [];
   return merged;
 }
@@ -2759,7 +2735,6 @@ function route(){
   if (!state){ renderTitle(); return; }
   switch (state.phase){
     case "title": renderTitle(); break;
-    case "intro": renderIntro(); break;
     case "prefs": renderPrefs(); break;
     case "schedule": renderSchedule(); break;
     case "menuPreview": renderMenuPreview(); break;

@@ -167,8 +167,8 @@ DESIGN.md                          디자인 가이드 (색상·타이포·화�
 잘먹었습니다_PRD_v0.2_수정사항.md    v0.2 기획 변경 사항
 ASSET_MANIFEST.md                  그림 리소스 명세
 assets/thanksmeal/ui-v2/           가족 얼굴·코어 아이콘·타이틀 로고
-assets/thanksmeal/tutorial/        게임 방법 안내 4장 (2:3)
-assets/thanksmeal/endings/         엔딩 일러스트 8장 (1:1)
+assets/thanksmeal/tutorial/        게임 방법 안내 4장 (2:3, WebP)
+assets/thanksmeal/endings/         엔딩 일러스트 8장 (1:1, WebP)
 assets/thanksmeal/                 초기 손그림 PNG 7종 (보관용)
 ```
 

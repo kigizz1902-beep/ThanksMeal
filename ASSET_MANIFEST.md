@@ -75,29 +75,29 @@
 
 ## 게임 방법 안내 (tutorial/)
 
-원본 1000×1500(2:3)의 세로 카드 4장이다. 제목과 설명이 이미지 안에 포함되어 있으므로 화면에 같은 문구를 다시 적지 않는다. `object-fit: contain`으로 비율을 유지하고, 크림색 카드(`--paper`) 위에 올린다.
+원본 1000×1500(2:3)의 세로 카드 4장이다. 용량을 위해 WebP(품질 0.88)로 저장했다. 제목과 설명이 이미지 안에 포함되어 있으므로 화면에 같은 문구를 다시 적지 않는다. `object-fit: contain`으로 비율을 유지하고, 크림색 카드(`--paper`) 위에 올린다.
 
 | 파일 | 내용 |
 |---|---|
-| `tutorial/game-rule-01-food-1000x1500.png` | 1/4 음식 취향 (좋아하는 2 · 별로인 1 · 못 먹는 재료 1) |
-| `tutorial/game-rule-02-schedule-1000x1500.png` | 2/4 일주일 약속 배치 |
-| `tutorial/game-rule-03-reply-1000x1500.png` | 3/4 5초 답장 |
-| `tutorial/game-rule-04-warmth-1000x1500.png` | 4/4 식탁 온기와 나의 충전 |
+| `tutorial/game-rule-01-food-1000x1500.webp` | 1/4 음식 취향 (좋아하는 2 · 별로인 1 · 못 먹는 재료 1) |
+| `tutorial/game-rule-02-schedule-1000x1500.webp` | 2/4 일주일 약속 배치 |
+| `tutorial/game-rule-03-reply-1000x1500.webp` | 3/4 5초 답장 |
+| `tutorial/game-rule-04-warmth-1000x1500.webp` | 4/4 식탁 온기와 나의 충전 |
 
 ## 엔딩 일러스트 (endings/)
 
-1024×1024 정사각형 8종. 엔딩 ID와 1:1로 대응한다.
+1024×1024 정사각형 8종. 엔딩 ID와 1:1로 대응하며, 튜토리얼과 같은 WebP(품질 0.88)다.
 
 | 파일 | 엔딩 ID | 엔딩 이름 |
 |---|---|---|
-| `endings/ending-01-warm-week-1024.png` | `warm-week` | 함께라서 따뜻한 한 주 |
-| `endings/ending-02-balanced-distance-1024.png` | `balanced-distance` | 딱 좋은 거리 |
-| `endings/ending-03-waiting-table-1024.png` | `waiting-table` | 기다려준 식탁 |
-| `endings/ending-04-my-week-1024.png` | `my-week` | 나를 위한 일주일 |
-| `endings/ending-05-missed-week-1024.png` | `missed-week` | 조금 엇갈린 한 주 |
-| `endings/ending-06-dads-table-1024.png` | `dads-table` | 아빠의 저녁 식탁 |
-| `endings/ending-07-family-outing-1024.png` | `family-outing` | 모두 함께 외식하는 날 |
-| `endings/ending-08-remembered-bowl-1024.png` | `remembered-bowl` | 나를 기억한 한 그릇 |
+| `endings/ending-01-warm-week-1024.webp` | `warm-week` | 함께라서 따뜻한 한 주 |
+| `endings/ending-02-balanced-distance-1024.webp` | `balanced-distance` | 딱 좋은 거리 |
+| `endings/ending-03-waiting-table-1024.webp` | `waiting-table` | 기다려준 식탁 |
+| `endings/ending-04-my-week-1024.webp` | `my-week` | 나를 위한 일주일 |
+| `endings/ending-05-missed-week-1024.webp` | `missed-week` | 조금 엇갈린 한 주 |
+| `endings/ending-06-dads-table-1024.webp` | `dads-table` | 아빠의 저녁 식탁 |
+| `endings/ending-07-family-outing-1024.webp` | `family-outing` | 모두 함께 외식하는 날 |
+| `endings/ending-08-remembered-bowl-1024.webp` | `remembered-bowl` | 나를 기억한 한 그릇 |
 
 ## 스프라이트 순서
 

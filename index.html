@@ -844,6 +844,94 @@ h1, h2, h3 { margin: 0; font-weight: 400; }
 }
 @keyframes toastIn { 0% { opacity: 0; } 12% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
 
+/* ---------- 게임 방법 튜토리얼 ---------- */
+.tutorial-scene {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-height: 0;
+  margin-block: auto;
+}
+.tutorial-card {
+  position: relative;
+  border: var(--line);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+  padding: var(--space-2);
+  overflow: hidden;
+}
+.tutorial-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  max-height: 60dvh;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tutorial-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  animation: tutorialIn var(--duration-normal) var(--ease-paper);
+}
+.tutorial-img.is-hidden { display: none; }
+@keyframes tutorialIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
+.tutorial-fallback {
+  display: none;
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+  padding: var(--space-4);
+}
+.tutorial-frame.is-broken .tutorial-img { display: none; }
+.tutorial-frame.is-broken .tutorial-fallback { display: block; }
+.tutorial-dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+.tutorial-dots .dot {
+  width: 10px; height: 10px;
+  border: var(--line);
+  border-radius: var(--radius-round);
+  background: var(--paper);
+}
+.tutorial-dots .dot.is-on { background: var(--yellow); }
+.tutorial-nav { display: flex; gap: var(--space-2); }
+.tutorial-nav .btn { flex: 1; margin: 0; }
+
+/* ---------- 엔딩 이미지 ---------- */
+.ending-art {
+  border: var(--line);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+  padding: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.ending-art-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: 52dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ending-art-frame img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.ending-art-frame.is-broken img { display: none; }
+.ending-art-fallback { display: none; text-align: center; font-size: var(--text-sm); color: var(--ink-soft); }
+.ending-art-frame.is-broken .ending-art-fallback { display: block; }
+.ending-collection { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+.ending-collection .chip-dim { opacity: .45; }
+
 .sr-only {
   position: absolute; width: 1px; height: 1px;
   padding: 0; margin: -1px; overflow: hidden;
@@ -856,7 +944,7 @@ h1, h2, h3 { margin: 0; font-weight: 400; }
     animation-iteration-count: 1 !important;
     transition-duration: 80ms !important;
   }
-  .msg, .seat, .overlay-card, .reward-mark::before, .spark {
+  .msg, .seat, .overlay-card, .reward-mark::before, .spark, .tutorial-img {
     animation-name: fadeOnly !important;
   }
   @keyframes fadeOnly { from { opacity: 0; } to { opacity: 1; } }
@@ -1016,6 +1104,86 @@ const FAMILY_ORDER = [
 const TITLE_LOGO = "assets/thanksmeal/ui-v2/title-logo-cutlery-only.png";
 const START_DECORATION = "assets/thanksmeal/ui-v2/start-decoration-rice-bowl-hearts.png";
 
+// 게임 방법 안내 이미지 (원본 비율 2:3)
+const TUTORIAL_PAGES = [
+  { src: "assets/thanksmeal/tutorial/game-rule-01-food-1000x1500.png",     alt: "게임 방법 1/4 — 음식 취향을 정해요" },
+  { src: "assets/thanksmeal/tutorial/game-rule-02-schedule-1000x1500.png", alt: "게임 방법 2/4 — 일주일 약속을 배치해요" },
+  { src: "assets/thanksmeal/tutorial/game-rule-03-reply-1000x1500.png",    alt: "게임 방법 3/4 — 5초 안에 답장해요" },
+  { src: "assets/thanksmeal/tutorial/game-rule-04-warmth-1000x1500.png",   alt: "게임 방법 4/4 — 식탁 온기와 나의 충전을 채워요" }
+];
+
+// 엔딩 정의 — 특별 엔딩이 위, 아래로 갈수록 기본 엔딩.
+// test(c)가 true인 첫 항목이 선택된다. 조건을 바꾸려면 test만 수정하면 된다.
+const ENDING_DEFS = [
+  {
+    id: "remembered-bowl",
+    title: "나를 기억한 한 그릇",
+    image: "assets/thanksmeal/endings/ending-08-remembered-bowl-1024.png",
+    headline: "좋아하는 것과 못 먹는 것을 기억해주었어요",
+    lines: ["식탁 위에는 내가 좋아하는 것이 올라왔고, 못 먹는 것은 조용히 빠져 있었다.",
+            "누군가 나를 기억하고 있다는 건 그런 모양이었다."],
+    test: c => c.likedMeals >= 2 && c.restrictedCare >= 1 && c.warmth >= 3
+  },
+  {
+    id: "family-outing",
+    title: "모두 함께 외식하는 날",
+    image: "assets/thanksmeal/endings/ending-07-family-outing-1024.png",
+    headline: "오랜만에 넷이 밖에서 저녁을 먹었어요",
+    lines: ["오랜만에 네 사람이 같은 식당에 앉았다.", "메뉴보다 오래 걸린 건 자리를 맞추는 일이었다."],
+    test: c => c.weekIndex >= 8 && c.outingHappened && c.outingJoined
+  },
+  {
+    id: "dads-table",
+    title: "아빠의 저녁 식탁",
+    image: "assets/thanksmeal/endings/ending-06-dads-table-1024.png",
+    headline: "아빠가 차린 저녁에 함께 앉았어요",
+    lines: ["앞치마를 두른 아빠가 국자를 들고 서 있었다.", "맛보다 먼저 기억에 남은 건 그 뒷모습이었다."],
+    test: c => c.dadCooked && c.dadMeals >= 1
+  },
+  {
+    id: "warm-week",
+    title: "함께라서 따뜻한 한 주",
+    image: "assets/thanksmeal/endings/ending-01-warm-week-1024.png",
+    headline: "가족의 마음이 따뜻하게 채워졌어요",
+    lines: ["일주일 동안 식탁에는 음식만 놓인 것이 아니었다.", "짧은 대답과 기다림, 함께한 시간이 빈자리를 채웠다."],
+    test: c => c.meals >= 5 && c.warmth >= 4
+  },
+  {
+    id: "balanced-distance",
+    title: "딱 좋은 거리",
+    image: "assets/thanksmeal/endings/ending-02-balanced-distance-1024.png",
+    headline: "가족도 나도 놓치지 않은 한 주였어요",
+    lines: ["가족과 나의 시간을 모두 놓치지 않은 한 주였다.", "다음 주에도 이 정도면 충분하다."],
+    test: c => c.meals >= 3 && c.meals <= 4 && c.attended >= 1 && c.warmth >= 3 && c.recharge >= 2.5
+  },
+  {
+    id: "my-week",
+    title: "나를 위한 일주일",
+    image: "assets/thanksmeal/endings/ending-04-my-week-1024.png",
+    headline: "나를 채운 만큼 식탁은 조용했어요",
+    lines: ["이번 주에는 지켜야 할 약속이 많았다.", "일요일 밤, 냉장고에는 가족이 남겨둔 반찬이 있었다."],
+    test: c => c.meals < 3 && c.attended >= 2 && c.recharge >= 4
+  },
+  {
+    id: "waiting-table",
+    title: "기다려준 식탁",
+    image: "assets/thanksmeal/endings/ending-03-waiting-table-1024.png",
+    headline: "대답은 늘 제때 닿았어요",
+    lines: ["같이 앉은 날은 적었지만 대답은 늘 제때 닿았다.", "식탁은 그 대답을 기억하고 자리를 비워두었다."],
+    test: c => c.meals < 3 && c.replyRate >= 0.8 && c.warmth >= 1.5
+  },
+  {
+    id: "missed-week",
+    title: "조금 엇갈린 한 주",
+    image: "assets/thanksmeal/endings/ending-05-missed-week-1024.png",
+    headline: "이번 주는 서로의 시간이 조금 엇갈렸어요",
+    lines: ["이번 주에는 모두의 시간이 좀처럼 맞지 않았다.", "그래도 식탁의 자리는 다음 주에도 그대로 남아 있다."],
+    test: () => true
+  }
+];
+const ENDING_BY_ID = {};
+ENDING_DEFS.forEach(e => { ENDING_BY_ID[e.id] = e; });
+
 const HEART_PATH = "M12 20.6C12 20.6 3.6 15.1 3.6 9.3 3.6 6.4 5.9 4.1 8.7 4.1c1.5 0 2.9.8 3.3 1.8.4-1 1.8-1.8 3.3-1.8 2.8 0 5.1 2.3 5.1 5.2 0 5.8-8.4 11.3-8.4 11.3z";
 const STAR_PATH  = "M12 3.4l2.6 5.5 6 .8-4.4 4.1 1.1 5.9-5.3-3-5.3 3 1.1-5.9L3.4 9.7l6-.8z";
 
@@ -1047,6 +1215,10 @@ function freshState(){
     lateJoinCount: 0,
     likedMealCount: 0,
     fastAnswerCount: 0,
+    timeoutCount: 0,
+    restrictedCareCount: 0,
+    dadMealCount: 0,
+    outingJoined: false,
     choices: [],
     eventHistory: [],
     dayLog: [],
@@ -1071,8 +1243,18 @@ function freshMeta(){
     seenInterruptionIds: [],
     familyOutingUnlocked: false,
     familyOutingSeen: false,
-    seenOutingIds: []
+    seenOutingIds: [],
+    tutorialSeen: false,
+    endingsFound: []   // [{ id, week }] — 중복 없이 보관
   };
+}
+
+// 획득한 엔딩을 중복 없이 기록한다.
+function recordEnding(id){
+  if (!Array.isArray(meta.endingsFound)) meta.endingsFound = [];
+  meta.endingsFound = meta.endingsFound.filter(e => e && e.id);
+  if (meta.endingsFound.some(e => e.id === id)) return;
+  meta.endingsFound.push({ id, week: meta.completedWeeks, at: new Date().toISOString().slice(0, 10) });
 }
 
 function save(){
@@ -1330,7 +1512,8 @@ function renderTitle(){
   startBtn.onclick = () => {
     if (hasSave && !confirm("진행 중인 한 주가 있어요. 새로 시작하면 이번 주 기록이 사라집니다. 계속할까요?")) return;
     clearSave();
-    startNewWeek();
+    if (!meta.tutorialSeen) renderTutorial(startNewWeek);
+    else startNewWeek();
   };
   actions.appendChild(startBtn);
   primaryActionBtn = startBtn;
@@ -1349,12 +1532,104 @@ function renderTitle(){
     actions.appendChild(resume);
   }
 
+  const howto = el("button", "btn ghost", "게임 방법");
+  howto.type = "button";
+  howto.onclick = () => renderTutorial(renderTitle);
+  actions.appendChild(howto);
+
   const record = el("button", "btn ghost", "기록 보기");
   record.type = "button";
   record.onclick = openRecordModal;
   actions.appendChild(record);
 
   screenEl.appendChild(actions);
+  preloadTutorial();
+}
+
+// ===================== 화면: 게임 방법 =====================
+
+let tutorialPreloaded = false;
+function preloadTutorial(){
+  if (tutorialPreloaded) return;
+  tutorialPreloaded = true;
+  TUTORIAL_PAGES.forEach(p => { const im = new Image(); im.src = p.src; });
+}
+
+// onDone: 마지막 장 또는 건너뛰기 후에 실행할 동작
+function renderTutorial(onDone){
+  preloadTutorial();
+  clearScreen();
+  appEl.dataset.screen = "tutorial";
+
+  let idx = 0;
+  const scene = el("section", "scene tutorial-scene");
+  const card = el("div", "tutorial-card");
+  const frame = el("div", "tutorial-frame");
+  frame.innerHTML = `<img class="tutorial-img" alt="">
+    <p class="tutorial-fallback">이미지를 불러오지 못했어요.<br>버튼으로 계속 진행할 수 있어요.</p>`;
+  const img = frame.querySelector(".tutorial-img");
+  img.onerror = () => { frame.classList.add("is-broken"); };
+  img.onload = () => { frame.classList.remove("is-broken"); };
+  card.appendChild(frame);
+  scene.appendChild(card);
+
+  const dots = el("div", "tutorial-dots");
+  dots.setAttribute("aria-hidden", "true");
+  dots.innerHTML = TUTORIAL_PAGES.map(() => `<span class="dot"></span>`).join("");
+  scene.appendChild(dots);
+  screenEl.appendChild(scene);
+
+  const nav = el("div", "action-area");
+  const navRow = el("div", "tutorial-nav");
+  const leftBtn = el("button", "btn ghost");
+  const rightBtn = el("button", "btn primary");
+  leftBtn.type = rightBtn.type = "button";
+  navRow.appendChild(leftBtn);
+  navRow.appendChild(rightBtn);
+  nav.appendChild(navRow);
+  screenEl.appendChild(nav);
+
+  function finish(){
+    meta.tutorialSeen = true;
+    saveMeta();
+    onDone();
+  }
+  function go(next){
+    if (next < 0 || next >= TUTORIAL_PAGES.length) return;
+    idx = next;
+    draw();
+  }
+  function draw(){
+    const page = TUTORIAL_PAGES[idx];
+    frame.classList.remove("is-broken");
+    // 같은 노드를 다시 그려 전환 애니메이션을 재생한다.
+    img.classList.remove("tutorial-img");
+    void img.offsetWidth;
+    img.classList.add("tutorial-img");
+    img.src = page.src;
+    img.alt = page.alt;
+    Array.from(dots.children).forEach((d, i) => d.classList.toggle("is-on", i === idx));
+
+    leftBtn.textContent = idx === 0 ? "건너뛰기" : "이전";
+    leftBtn.onclick = idx === 0 ? finish : () => go(idx - 1);
+    const last = idx === TUTORIAL_PAGES.length - 1;
+    rightBtn.textContent = last ? "게임 시작" : "다음";
+    rightBtn.onclick = last ? finish : () => go(idx + 1);
+    primaryActionBtn = rightBtn;
+    announce(`게임 방법 ${idx + 1} / ${TUTORIAL_PAGES.length}`);
+  }
+  draw();
+
+  // 모바일 좌우 스와이프
+  let touchX = null;
+  card.addEventListener("touchstart", e => { touchX = e.changedTouches[0].clientX; }, { passive:true });
+  card.addEventListener("touchend", e => {
+    if (touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    touchX = null;
+    if (Math.abs(dx) < 40) return;
+    go(dx < 0 ? idx + 1 : idx - 1);
+  }, { passive:true });
 }
 
 function startNewWeek(){
@@ -1369,9 +1644,28 @@ function openRecordModal(){
     <p class="body-text">완주한 일주일 <span class="hud-number">${meta.completedWeeks}회</span></p>
     <p class="body-text">만난 돌발 상황 <span class="hud-number">${meta.seenInterruptionIds.length}/6</span></p>
     <p class="body-text">가본 외식 장소 <span class="hud-number">${meta.seenOutingIds.length}/6</span></p>
+    <p class="body-text">모은 엔딩 <span class="hud-number">${foundEndings().length}/${ENDING_DEFS.length}</span></p>
     <p class="sub-text">기록은 새 게임을 시작해도 사라지지 않아요.</p>
   `;
   showOverlay(body, { closable:true });
+}
+
+function foundEndings(){
+  return (Array.isArray(meta.endingsFound) ? meta.endingsFound : []).filter(e => e && ENDING_BY_ID[e.id]);
+}
+
+function openEndingAlbum(){
+  const found = foundEndings();
+  const items = ENDING_DEFS.map(def => {
+    const got = found.find(e => e.id === def.id);
+    return `<span class="stamp-note${got ? "" : " chip-dim"}">${got ? esc(def.title) : "???"}${got && got.week ? ` · ${got.week}주차` : ""}</span>`;
+  }).join("");
+  showOverlay(`
+    <h2 class="screen-title">모은 엔딩</h2>
+    <p class="body-text"><span class="hud-number">${found.length}/${ENDING_DEFS.length}</span> 개를 만났어요.</p>
+    <div class="ending-collection">${items}</div>
+    <p class="sub-text" style="margin-top:var(--space-3)">한 주를 다르게 보내면 다른 결말을 만날 수 있어요.</p>
+  `, { closable:true });
 }
 
 // ===================== 화면: 소개 =====================
@@ -2048,6 +2342,7 @@ function finishDay(key, absentees, actualMenu, sch, hasRestricted){
   let lateJoin = false;
 
   if (key === "timeout"){
+    state.timeoutCount++;
     notes.push("답장을 놓쳤어요.");
     notes.push(pick(TIMEOUT_LINES));
     if (sch){
@@ -2062,6 +2357,7 @@ function finishDay(key, absentees, actualMenu, sch, hasRestricted){
     state.tableWarmth = clampHalf(state.tableWarmth + 0.5);
     rewards.push({ kind:"heart", text:"식탁 온기 +0.5" });
     if (hasRestricted){
+      state.restrictedCareCount++;
       notes.push(outing ? "먹을 수 있는 메뉴로 같이 골랐어요." : "못 먹는 재료는 빼고 차려졌어요.");
     } else if (actualMenu.tags.some(t => state.preferences.likedTags.includes(t))){
       state.personalRecharge = clampHalf(state.personalRecharge + 0.5);
@@ -2095,6 +2391,8 @@ function finishDay(key, absentees, actualMenu, sch, hasRestricted){
   if (ateMeal){
     state.mealCount++;
     if (lateJoin) state.lateJoinCount++;
+    if (outing) state.outingJoined = true;
+    if (cookOfDay(state.currentDay) === "dad") state.dadMealCount++;
     const allTogether = !lateJoin && seats.mom === "together" && seats.dad === "together" && seats.sib === "together";
     if (allTogether){
       state.fullFamilyMealCount++;
@@ -2214,6 +2512,32 @@ function applyGoalBonus(){
   }
 }
 
+// 엔딩 판정에 쓰이는 값만 한 곳에 모은다. ENDING_DEFS의 test(c)가 이 객체를 받는다.
+function endingContext(warmth, recharge, attended){
+  const replyTotal = state.choices.length;
+  const missed = state.choices.filter(c => c.choice === "timeout").length;
+  const answered = replyTotal - missed;
+  return {
+    warmth,
+    recharge,
+    meals: state.mealCount,
+    fullFamilyMeals: state.fullFamilyMealCount,
+    lateJoins: state.lateJoinCount,
+    likedMeals: state.likedMealCount,
+    restrictedCare: state.restrictedCareCount || 0,
+    dadMeals: state.dadMealCount || 0,
+    dadCooked: state.weeklyCook.cook === "dad" && state.weeklyCook.day !== null,
+    outingHappened: !!state.weeklyFamilyOuting.triggered,
+    outingJoined: !!state.outingJoined,
+    attended,
+    replyTotal,
+    answered,
+    missed,
+    replyRate: replyTotal ? answered / replyTotal : 0,
+    weekIndex: meta.completedWeeks + 1
+  };
+}
+
 function computeEnding(){
   applyGoalBonus();
   const w = state.tableWarmth;
@@ -2221,23 +2545,10 @@ function computeEnding(){
   const cancelled = state.schedules.filter(s => s.status === "취소").length;
   const attended = state.schedules.filter(s => s.status === "참석" || s.status === "지각 참석").length;
 
-  let ending;
-  if (w >= 5 && r >= 3){
-    ending = { id:"warmed", title:"사랑이 채워진 식탁", headline:"가족의 마음이 따뜻하게 채워졌어요",
-      lines:["일주일 동안 식탁에는 음식만 놓인 것이 아니었다.", "짧은 대답과 기다림, 함께한 시간이 빈자리를 채웠다."] };
-  } else if (w >= 3 && r >= 3){
-    ending = { id:"good", title:"잘 먹었습니다", headline:"가족도 나도 놓치지 않은 한 주였어요",
-      lines:["가족과 나의 시간을 모두 놓치지 않은 한 주였다.", "다음 주에도 이 정도면 충분하다."] };
-  } else if (w >= 4 && r < 3){
-    ending = { id:"regular", title:"식탁의 단골", headline:"식탁은 따뜻했고, 내 시간은 조금 남았어요",
-      lines:["식탁은 따뜻하게 채웠지만 미뤄둔 약속도 조금 남았다.", "다음 주에는 나를 위한 저녁도 필요할지 모른다."] };
-  } else if (w < 3 && r >= 4){
-    ending = { id:"myweek", title:"나를 위한 한 주", headline:"나를 채운 만큼 식탁은 조용했어요",
-      lines:["이번 주에는 지켜야 할 약속이 많았다.", "일요일 밤, 냉장고에는 가족이 남겨둔 반찬이 있었다."] };
-  } else {
-    ending = { id:"leftseat", title:"아직 남은 한 자리", headline:"이번 주는 서로의 시간이 어긋났어요",
-      lines:["이번 주에는 모두의 시간이 좀처럼 맞지 않았다.", "그래도 식탁의 자리는 다음 주에도 그대로 남아 있다."] };
-  }
+  const ctx = endingContext(w, r, attended);
+  const ending = ENDING_DEFS.find(e => {
+    try { return e.test(ctx); } catch(err){ return false; }
+  }) || ENDING_DEFS[ENDING_DEFS.length - 1];
 
   const patterns = [];
   if (state.fullFamilyMealCount >= 1) patterns.push("넷이서 한 끼");
@@ -2253,6 +2564,9 @@ function computeEnding(){
     pattern: patterns.length ? patterns[0] : "조용히 지나간 한 주",
     cancelled,
     attended,
+    replyRate: ctx.replyRate,
+    answered: ctx.answered,
+    replyTotal: ctx.replyTotal,
     outingNote: state.weeklyFamilyOuting.triggered && !meta.familyOutingSeen ? "오랜만의 가족 외식" : null
   };
 }
@@ -2275,9 +2589,20 @@ function renderEnding(){
       const place = state.weeklyFamilyOuting.outingId;
       if (place && !meta.seenOutingIds.includes(place)) meta.seenOutingIds.push(place);
     }
+    recordEnding(result.ending.id);
     saveMeta();
     save();
   }
+
+  const art = el("section", "ending-art");
+  art.innerHTML = `
+    <div class="ending-art-frame">
+      <img src="${result.ending.image}" alt="엔딩 — ${esc(result.ending.title)}">
+      <p class="ending-art-fallback">${esc(result.ending.title)}<br>${esc(result.headline)}</p>
+    </div>`;
+  const artFrame = art.querySelector(".ending-art-frame");
+  art.querySelector("img").onerror = () => artFrame.classList.add("is-broken");
+  screenEl.appendChild(art);
 
   const head = el("section", "panel plain");
   let warmthCells = "";
@@ -2285,14 +2610,10 @@ function renderEnding(){
     warmthCells += meterCell("heart", Math.max(0, Math.min(1, state.tableWarmth - i)), "lg");
   }
   head.innerHTML = `
-    <h1 class="screen-title center" id="endTitle" tabindex="-1">${esc(result.ending.title)}</h1>
+    <h1 class="sr-only" id="endTitle" tabindex="-1">${esc(result.ending.title)} — ${esc(result.headline)}</h1>
     <div class="center" style="margin:var(--space-2) 0">
       <span class="meter" style="gap:var(--space-1)" role="img"
         aria-label="식탁 온기 5점 중 ${fmtNum(state.tableWarmth)}점">${warmthCells}</span>
-    </div>
-    <p class="body-text center">${esc(result.headline)}</p>
-    <div class="face-row" style="margin:var(--space-4) 0 var(--space-2)">
-      ${FAMILY_ORDER.map(f => `<span class="face-box">${faceImg(f.key)}</span>`).join("")}
     </div>
   `;
   screenEl.appendChild(head);
@@ -2311,13 +2632,15 @@ function renderEnding(){
 
   const meters = el("section", "panel");
   meters.innerHTML = `
-    <div class="stat-row"><span class="stat-name">함께 먹은 저녁</span><span class="stat-value hud-number">${state.mealCount}회</span></div>
-    <div class="stat-row"><span class="stat-name">식탁 온기</span><span class="stat-value hud-number">${fmtNum(state.tableWarmth)}</span></div>
-    <div class="stat-row"><span class="stat-name">나의 충전</span><span class="stat-value hud-number">${fmtNum(state.personalRecharge)}</span></div>
+    <div class="stat-row"><span class="stat-name">가족과 함께 먹은 횟수</span><span class="stat-value hud-number">${state.mealCount}회</span></div>
+    <div class="stat-row"><span class="stat-name">지킨 개인 약속</span><span class="stat-value hud-number">${result.attended}개</span></div>
+    <div class="stat-row"><span class="stat-name">답장 성공률</span><span class="stat-value hud-number">${Math.round((result.replyRate || 0) * 100)}%</span></div>
+    <div class="stat-row"><span class="stat-name">최종 가족 온기</span><span class="stat-value hud-number">${fmtNum(state.tableWarmth)}/5</span></div>
+    <div class="stat-row"><span class="stat-name">획득한 엔딩</span><span class="stat-value">${esc(result.ending.title)}</span></div>
     <p class="sub-text" style="margin-top:var(--space-3)">
+      나의 충전 <span class="hud-number">${fmtNum(state.personalRecharge)}</span> ·
       넷이서 <span class="hud-number">${state.fullFamilyMealCount}회</span> ·
       늦게 합류 <span class="hud-number">${state.lateJoinCount}회</span> ·
-      지킨 약속 <span class="hud-number">${result.attended}개</span> ·
       미룬 약속 <span class="hud-number">${result.cancelled}개</span>
     </p>
   `;
@@ -2342,7 +2665,7 @@ function renderEnding(){
   }
 
   const actions = el("div", "action-area");
-  const again = el("button", "btn primary", "다음 주도 함께하기");
+  const again = el("button", "btn primary", "다시 한 주 보내기");
   again.type = "button";
   again.onclick = () => {
     resetWeek();
@@ -2355,6 +2678,11 @@ function renderEnding(){
   home.type = "button";
   home.onclick = () => { resetWeek(); route(); };
   actions.appendChild(home);
+
+  const album = el("button", "btn ghost", "모은 엔딩 보기");
+  album.type = "button";
+  album.onclick = openEndingAlbum;
+  actions.appendChild(album);
 
   screenEl.appendChild(actions);
   primaryActionBtn = again;

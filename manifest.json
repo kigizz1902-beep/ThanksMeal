@@ -1,0 +1,22 @@
+{
+  "name": "잘 먹었습니다!",
+  "short_name": "잘먹었습니다",
+  "description": "우리 가족 감사 식탁 게임",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F0EEE7",
+  "theme_color": "#F2DA55",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
